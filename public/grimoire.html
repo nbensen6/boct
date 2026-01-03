@@ -11,6 +11,9 @@
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         :root {
@@ -94,6 +97,23 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
+        /* Selection hint */
+        .selection-hint {
+            text-align: center;
+            padding: 10px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            display: none;
+        }
+
+        .selection-hint.active {
+            display: block;
+        }
+
         .grimoire-layout {
             display: flex;
             gap: 20px;
@@ -103,7 +123,7 @@
         /* Circle seating area */
         .circle-area {
             flex: 1;
-            min-width: 500px;
+            min-width: 350px;
             aspect-ratio: 1;
             position: relative;
             background: radial-gradient(circle, rgba(30, 20, 20, 0.8) 0%, rgba(10, 5, 5, 0.9) 100%);
@@ -121,25 +141,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: grab;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .seat:active {
-            cursor: grabbing;
-        }
-
-        .seat:hover {
-            transform: translate(-50%, -50%) scale(1.05);
-        }
-
-        .seat.dragging {
-            opacity: 0.5;
-            z-index: 100;
-        }
-
-        .seat.drag-target {
+        .seat.selected {
             transform: translate(-50%, -50%) scale(1.15);
+            z-index: 10;
+        }
+
+        .seat.selected .seat-token {
+            box-shadow: 0 0 25px var(--gold), 0 0 50px var(--gold);
+            border-color: var(--gold);
         }
 
         .seat-token {
@@ -189,12 +202,6 @@
             height: 4px;
             background: var(--accent);
             transform: rotate(-45deg);
-        }
-
-        .seat-token.drag-over {
-            border-color: var(--gold);
-            box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
-            transform: scale(1.1);
         }
 
         .seat-player-name {
@@ -270,17 +277,19 @@
             text-align: center;
             padding: 4px;
             font-family: 'Cinzel', serif;
-            cursor: grab;
+            cursor: pointer;
             transition: all 0.2s;
             background: var(--bg-dark);
         }
 
-        .role-token:active {
-            cursor: grabbing;
-        }
-
         .role-token:hover {
             transform: scale(1.1);
+        }
+
+        .role-token.selected {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold);
+            border-color: var(--gold) !important;
         }
 
         .role-token.townsfolk {
@@ -304,13 +313,8 @@
             background: linear-gradient(135deg, #1a0505, #2d0a0a);
         }
 
-        .role-token.dragging {
-            opacity: 0.5;
-        }
-
         .role-token.used {
             opacity: 0.3;
-            pointer-events: none;
         }
 
         /* Controls */
@@ -392,6 +396,10 @@
 
         <h1>The Grimoire</h1>
 
+        <div class="selection-hint" id="selectionHint">
+            Tap a seat to swap, or tap selected seat again to toggle alive/dead
+        </div>
+
         <div class="controls">
             <label style="color: var(--text); display: flex; align-items: center; gap: 8px;">
                 <span style="font-family: 'Cinzel', serif;">Players:</span>
@@ -410,6 +418,7 @@
                 </select>
             </label>
             <button class="control-btn" onclick="syncFromTracker()">Sync from Tracker</button>
+            <button class="control-btn" onclick="clearSelection()">Cancel Selection</button>
             <button class="control-btn" onclick="clearGrimoire()">Clear All</button>
         </div>
 
@@ -420,6 +429,9 @@
 
             <div class="tokens-panel">
                 <h2>Role Tokens</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px 0; text-align: center;">
+                    Tap a role, then tap a seat to assign
+                </p>
 
                 <div class="token-category townsfolk">
                     <h3>Townsfolk</h3>
@@ -458,11 +470,12 @@
 
         let grimoireState = {
             playerCount: 13,
-            seats: [] // { seatNum, role, playerName, team, alive }
+            seats: []
         };
 
-        let draggedRole = null;
-        let draggedSeatIndex = null;
+        // Selection state
+        let selectedSeatIndex = null;
+        let selectedRole = null;
 
         function loadState() {
             const saved = localStorage.getItem('boctGrimoireState');
@@ -514,6 +527,7 @@
                 }
             }
 
+            clearSelection();
             saveState();
             renderSeats();
             renderTokens();
@@ -521,7 +535,6 @@
 
         function renderSeats() {
             const area = document.getElementById('circleArea');
-            const rect = area.getBoundingClientRect();
             const centerX = 50;
             const centerY = 50;
             const radius = 40;
@@ -534,11 +547,9 @@
                 const y = centerY + radius * Math.sin(angle);
 
                 const seatEl = document.createElement('div');
-                seatEl.className = 'seat';
+                seatEl.className = 'seat' + (selectedSeatIndex === i ? ' selected' : '');
                 seatEl.style.left = x + '%';
                 seatEl.style.top = y + '%';
-                seatEl.dataset.seat = i;
-                seatEl.draggable = true;
 
                 const tokenClasses = ['seat-token'];
                 if (seat.role) tokenClasses.push('has-role');
@@ -546,22 +557,17 @@
                 if (!seat.alive) tokenClasses.push('dead');
 
                 seatEl.innerHTML = `
-                    <div class="${tokenClasses.join(' ')}"
-                         ondragover="handleDragOver(event)"
-                         ondrop="handleDrop(event, ${i})"
-                         ondragleave="handleDragLeave(event)"
-                         onclick="toggleSeatDeath(${i})">
+                    <div class="${tokenClasses.join(' ')}">
                         ${seat.role || '?'}
                     </div>
                     <div class="seat-player-name ${seat.alive ? '' : 'dead'}">${seat.playerName || ''}</div>
                 `;
 
-                // Seat drag handlers
-                seatEl.addEventListener('dragstart', (e) => handleSeatDragStart(e, i));
-                seatEl.addEventListener('dragend', handleSeatDragEnd);
-                seatEl.addEventListener('dragover', (e) => handleSeatDragOver(e, i));
-                seatEl.addEventListener('dragleave', handleSeatDragLeave);
-                seatEl.addEventListener('drop', (e) => handleSeatDrop(e, i));
+                seatEl.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSeatTap(i);
+                });
 
                 area.appendChild(seatEl);
             });
@@ -580,12 +586,11 @@
                                       category === 'minions' ? 'minion' :
                                       category === 'demons' ? 'demon' : 'townsfolk';
                     const usedClass = usedRoles.has(role) ? 'used' : '';
+                    const selectedClass = selectedRole && selectedRole.role === role ? 'selected' : '';
 
                     return `
-                        <div class="role-token ${tokenClass} ${usedClass}"
-                             draggable="true"
-                             ondragstart="handleDragStart(event, '${role}', '${category}')"
-                             ondragend="handleDragEnd(event)">
+                        <div class="role-token ${tokenClass} ${usedClass} ${selectedClass}"
+                             onclick="handleRoleTap('${role}', '${category}')">
                             ${role}
                         </div>
                     `;
@@ -593,106 +598,101 @@
             });
         }
 
-        function handleDragStart(e, role, category) {
-            draggedRole = { role, team: (category === 'minions' || category === 'demons') ? 'evil' : 'good' };
-            e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
+        function handleRoleTap(role, category) {
+            // If same role tapped, deselect
+            if (selectedRole && selectedRole.role === role) {
+                selectedRole = null;
+                selectedSeatIndex = null;
+            } else {
+                // Select this role
+                selectedRole = {
+                    role,
+                    team: (category === 'minions' || category === 'demons') ? 'evil' : 'good'
+                };
+                selectedSeatIndex = null;
+            }
+            updateSelectionHint();
+            renderSeats();
+            renderTokens();
         }
 
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            draggedRole = null;
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.currentTarget.classList.add('drag-over');
-        }
-
-        function handleDragLeave(e) {
-            e.currentTarget.classList.remove('drag-over');
-        }
-
-        function handleDrop(e, seatIndex) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-
-            // Only handle role drops, not seat swaps
-            if (draggedRole && draggedSeatIndex === null) {
+        function handleSeatTap(seatIndex) {
+            // If a role is selected, assign it to this seat
+            if (selectedRole) {
                 // Remove role from old seat if it was placed elsewhere
                 grimoireState.seats.forEach(s => {
-                    if (s.role === draggedRole.role) {
+                    if (s.role === selectedRole.role) {
                         s.role = null;
                         s.team = null;
                     }
                 });
 
-                grimoireState.seats[seatIndex].role = draggedRole.role;
-                grimoireState.seats[seatIndex].team = draggedRole.team;
+                grimoireState.seats[seatIndex].role = selectedRole.role;
+                grimoireState.seats[seatIndex].team = selectedRole.team;
+                selectedRole = null;
                 saveState();
+                updateSelectionHint();
                 renderSeats();
                 renderTokens();
+                return;
             }
-        }
 
-        function toggleSeatDeath(seatIndex) {
-            // Only toggle if we're not in the middle of a drag
-            if (draggedSeatIndex === null && draggedRole === null) {
+            // If tapping the same seat that's already selected, toggle alive/dead
+            if (selectedSeatIndex === seatIndex) {
                 grimoireState.seats[seatIndex].alive = !grimoireState.seats[seatIndex].alive;
+                selectedSeatIndex = null;
                 saveState();
+                updateSelectionHint();
                 renderSeats();
+                return;
             }
-        }
 
-        // Seat drag handlers for swapping positions
-        function handleSeatDragStart(e, seatIndex) {
-            // Don't start seat drag if we're dragging from a role token
-            if (e.target.classList.contains('role-token')) return;
+            // If another seat is selected, swap them
+            if (selectedSeatIndex !== null) {
+                const temp = { ...grimoireState.seats[selectedSeatIndex] };
+                grimoireState.seats[selectedSeatIndex] = { ...grimoireState.seats[seatIndex] };
+                grimoireState.seats[seatIndex] = temp;
 
-            draggedSeatIndex = seatIndex;
-            e.currentTarget.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', seatIndex.toString());
-        }
-
-        function handleSeatDragEnd(e) {
-            e.currentTarget.classList.remove('dragging');
-            draggedSeatIndex = null;
-            // Remove drag-target class from all seats
-            document.querySelectorAll('.seat').forEach(s => s.classList.remove('drag-target'));
-        }
-
-        function handleSeatDragOver(e, seatIndex) {
-            if (draggedSeatIndex !== null && draggedSeatIndex !== seatIndex) {
-                e.preventDefault();
-                e.currentTarget.classList.add('drag-target');
-            }
-        }
-
-        function handleSeatDragLeave(e) {
-            e.currentTarget.classList.remove('drag-target');
-        }
-
-        function handleSeatDrop(e, targetIndex) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-target');
-
-            if (draggedSeatIndex !== null && draggedSeatIndex !== targetIndex) {
-                // Swap the two seats
-                const temp = { ...grimoireState.seats[draggedSeatIndex] };
-                grimoireState.seats[draggedSeatIndex] = { ...grimoireState.seats[targetIndex] };
-                grimoireState.seats[targetIndex] = temp;
-
-                // Update seat numbers to match positions
+                // Update seat numbers
                 grimoireState.seats.forEach((seat, i) => {
                     seat.seatNum = i + 1;
                 });
 
+                selectedSeatIndex = null;
                 saveState();
+                updateSelectionHint();
                 renderSeats();
                 renderTokens();
+                return;
             }
-            draggedSeatIndex = null;
+
+            // Otherwise, select this seat
+            selectedSeatIndex = seatIndex;
+            updateSelectionHint();
+            renderSeats();
+        }
+
+        function clearSelection() {
+            selectedSeatIndex = null;
+            selectedRole = null;
+            updateSelectionHint();
+            renderSeats();
+            renderTokens();
+        }
+
+        function updateSelectionHint() {
+            const hint = document.getElementById('selectionHint');
+            if (selectedRole) {
+                hint.textContent = `Selected: ${selectedRole.role} - Tap a seat to assign`;
+                hint.classList.add('active');
+            } else if (selectedSeatIndex !== null) {
+                const seat = grimoireState.seats[selectedSeatIndex];
+                const name = seat.playerName || seat.role || 'Empty seat';
+                hint.textContent = `Selected: ${name} - Tap another seat to swap, or tap again to toggle alive/dead`;
+                hint.classList.add('active');
+            } else {
+                hint.classList.remove('active');
+            }
         }
 
         function syncFromTracker() {
@@ -708,11 +708,9 @@
                 return;
             }
 
-            // Update player count to match
             grimoireState.playerCount = Math.max(tracker.players.length, 5);
             document.getElementById('playerCount').value = grimoireState.playerCount;
 
-            // Reset seats
             grimoireState.seats = [];
             for (let i = 0; i < grimoireState.playerCount; i++) {
                 const player = tracker.players[i];
@@ -725,6 +723,7 @@
                 });
             }
 
+            clearSelection();
             saveState();
             renderSeats();
             renderTokens();
@@ -738,6 +737,7 @@
                     s.playerName = null;
                     s.alive = true;
                 });
+                clearSelection();
                 saveState();
                 renderSeats();
                 renderTokens();
@@ -750,24 +750,32 @@
             if (trackerState) {
                 const tracker = JSON.parse(trackerState);
                 if (tracker.players) {
-                    // Update alive/dead status for matching players
+                    let changed = false;
                     tracker.players.forEach((player, i) => {
                         if (grimoireState.seats[i]) {
-                            // Update if player name matches or if we have a name set
                             if (grimoireState.seats[i].playerName === player.name ||
                                 (!grimoireState.seats[i].playerName && player.name)) {
-                                grimoireState.seats[i].alive = player.alive;
-                                grimoireState.seats[i].playerName = player.name;
+                                if (grimoireState.seats[i].alive !== player.alive) {
+                                    grimoireState.seats[i].alive = player.alive;
+                                    changed = true;
+                                }
+                                if (!grimoireState.seats[i].playerName && player.name) {
+                                    grimoireState.seats[i].playerName = player.name;
+                                    changed = true;
+                                }
                                 if (player.role && !grimoireState.seats[i].role) {
                                     grimoireState.seats[i].role = player.role;
                                     grimoireState.seats[i].team = player.team;
+                                    changed = true;
                                 }
                             }
                         }
                     });
-                    saveState();
-                    renderSeats();
-                    renderTokens();
+                    if (changed) {
+                        saveState();
+                        renderSeats();
+                        renderTokens();
+                    }
                 }
             }
         }
