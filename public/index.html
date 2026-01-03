@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -1091,24 +1090,11 @@
             document.getElementById('join-url').textContent = `${window.location.origin}/player.html`;
 
             if (gameState.code) {
-                // Use toDataURL for image-based QR code (more reliable)
-                QRCode.toDataURL(joinUrl, {
-                    width: 250,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
-                    }
-                }, function(error, url) {
-                    const qrImg = document.getElementById('qr-code-img');
-                    if (error) {
-                        console.error('QR Code error:', error);
-                        qrImg.style.display = 'none';
-                    } else {
-                        qrImg.src = url;
-                        qrImg.style.display = 'block';
-                    }
-                });
+                // Use QR code API service (most reliable method)
+                const qrImg = document.getElementById('qr-code-img');
+                const encodedUrl = encodeURIComponent(joinUrl);
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}`;
+                qrImg.style.display = 'block';
             }
         }
 
