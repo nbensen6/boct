@@ -477,7 +477,7 @@
         // Selection state
         let selectedSeatIndex = null;
         let selectedRole = null;
-        let lastInteraction = 0; // Pause auto-sync briefly after interactions
+        let lastTapTime = 0; // Debounce taps
 
         function loadState() {
             const saved = localStorage.getItem('boctGrimoireState');
@@ -601,7 +601,10 @@
         }
 
         function handleRoleTap(role, category) {
-            lastInteraction = Date.now();
+            // Debounce - ignore taps within 300ms
+            const now = Date.now();
+            if (now - lastTapTime < 300) return;
+            lastTapTime = now;
 
             // If same role tapped, deselect
             if (selectedRole && selectedRole.role === role) {
@@ -621,7 +624,10 @@
         }
 
         function handleSeatTap(seatIndex) {
-            lastInteraction = Date.now();
+            // Debounce - ignore taps within 300ms
+            const now = Date.now();
+            if (now - lastTapTime < 300) return;
+            lastTapTime = now;
 
             // If a role is selected, assign it to this seat
             if (selectedRole) {
@@ -760,52 +766,8 @@
             }
         }
 
-        // Auto-sync with tracker periodically
-        function autoSync() {
-            // Skip auto-sync if user interacted recently (within 5 seconds)
-            if (Date.now() - lastInteraction < 5000) {
-                return;
-            }
-
-            const trackerState = localStorage.getItem('boctStorytellerState');
-            if (trackerState) {
-                const tracker = JSON.parse(trackerState);
-                if (tracker.players) {
-                    let changed = false;
-                    tracker.players.forEach((player, i) => {
-                        if (grimoireState.seats[i]) {
-                            if (grimoireState.seats[i].playerName === player.name ||
-                                (!grimoireState.seats[i].playerName && player.name)) {
-                                if (grimoireState.seats[i].alive !== player.alive) {
-                                    grimoireState.seats[i].alive = player.alive;
-                                    changed = true;
-                                }
-                                if (!grimoireState.seats[i].playerName && player.name) {
-                                    grimoireState.seats[i].playerName = player.name;
-                                    changed = true;
-                                }
-                                if (player.role && !grimoireState.seats[i].role) {
-                                    grimoireState.seats[i].role = player.role;
-                                    grimoireState.seats[i].team = player.team;
-                                    changed = true;
-                                }
-                            }
-                        }
-                    });
-                    if (changed) {
-                        saveState();
-                        renderSeats();
-                        renderTokens();
-                    }
-                }
-            }
-        }
-
         // Initialize
         loadState();
-
-        // Auto-sync every 3 seconds
-        setInterval(autoSync, 3000);
     </script>
 </body>
 </html>
