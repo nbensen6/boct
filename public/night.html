@@ -297,6 +297,10 @@
         <p class="subtitle">Who to wake and what to tell them</p>
 
         <div class="night-selector">
+            <select class="night-btn" id="editionSelect" onchange="changeEdition()" style="min-width: 150px;">
+                <option value="trouble_brewing">Trouble Brewing</option>
+                <option value="bad_moon_rising">Bad Moon Rising</option>
+            </select>
             <button class="night-btn" onclick="changeNight(-1)">&larr;</button>
             <div class="night-display">Night <span id="nightNum">1</span></div>
             <button class="night-btn" onclick="changeNight(1)">&rarr;</button>
@@ -313,42 +317,74 @@
     </div>
 
     <script>
-        // Night order for Trouble Brewing
-        const FIRST_NIGHT_ORDER = [
-            { role: "Poisoner", team: "evil", instruction: "The Poisoner wakes and points to a player. That player is poisoned tonight and tomorrow day.", action: "Show them: 'You poison [player]'" },
-            { role: "Spy", team: "evil", instruction: "Show the Spy the Grimoire. They see all roles and tokens.", action: "Show them the Grimoire" },
-            { role: "Washerwoman", team: "good", instruction: "Point to 2 players, one of which is the Townsfolk you're showing. Show the Townsfolk token.", action: "Point to 2 players, show Townsfolk token" },
-            { role: "Librarian", team: "good", instruction: "Point to 2 players, one of which is the Outsider you're showing. Show the Outsider token. (Or show 'zero' if no Outsiders)", action: "Point to 2 players, show Outsider token" },
-            { role: "Investigator", team: "good", instruction: "Point to 2 players, one of which is the Minion you're showing. Show the Minion token.", action: "Point to 2 players, show Minion token" },
-            { role: "Chef", team: "good", instruction: "Show fingers for the number of pairs of evil players sitting adjacent.", action: "Show number of evil pairs (fingers)" },
-            { role: "Empath", team: "good", instruction: "Show fingers for the number of their alive neighbors (left & right) that are evil.", action: "Show 0, 1, or 2 fingers" },
-            { role: "Fortune Teller", team: "good", instruction: "The Fortune Teller points to 2 players. Nod 'yes' if either is the Demon (or Red Herring), shake 'no' otherwise.", action: "They choose 2 players, nod/shake" },
-            { role: "Butler", team: "good", instruction: "The Butler points to a player. That is their Master tomorrow - they may only vote when their Master votes.", action: "They choose their Master" },
-        ];
-
-        const OTHER_NIGHTS_ORDER = [
-            { role: "Poisoner", team: "evil", instruction: "The Poisoner wakes and points to a player to poison.", action: "They choose who to poison" },
-            { role: "Monk", team: "good", instruction: "The Monk points to a player (not themselves). That player is safe from the Demon tonight.", action: "They choose who to protect" },
-            { role: "Spy", team: "evil", instruction: "Show the Spy the Grimoire.", action: "Show them the Grimoire" },
-            { role: "Scarlet Woman", team: "evil", instruction: "(Only if Demon died today with 5+ alive) The Scarlet Woman becomes the Imp.", action: "Show them: 'You are the Imp'" },
-            { role: "Imp", team: "evil", instruction: "The Imp points to a player to kill. If they choose themselves, a Minion becomes the Imp.", action: "They choose who to kill" },
-            { role: "Ravenkeeper", team: "good", instruction: "(Only if they died tonight) The Ravenkeeper points to a player. Show that player's character token.", action: "They choose, show character token" },
-            { role: "Undertaker", team: "good", instruction: "(Only if someone was executed today) Show the character token of the player who was executed.", action: "Show executed player's token" },
-            { role: "Empath", team: "good", instruction: "Show fingers for the number of their alive neighbors that are evil.", action: "Show 0, 1, or 2 fingers" },
-            { role: "Fortune Teller", team: "good", instruction: "The Fortune Teller points to 2 players. Nod 'yes' if either is the Demon (or Red Herring), shake 'no' otherwise.", action: "They choose 2 players, nod/shake" },
-            { role: "Butler", team: "good", instruction: "The Butler points to a player to be their Master.", action: "They choose their Master" },
-        ];
-
-        // Special first night info
-        const MINION_INFO = {
-            instruction: "Wake all Minions together. Let them see each other. Point to the Demon. Show 3 not-in-play characters as bluffs for the Demon.",
-            roles: ["Poisoner", "Spy", "Scarlet Woman", "Baron"]
+        const EDITIONS = {
+            trouble_brewing: {
+                name: "Trouble Brewing",
+                firstNight: [
+                    { role: "Poisoner", team: "evil", instruction: "The Poisoner wakes and points to a player. That player is poisoned tonight and tomorrow day.", action: "They choose who to poison" },
+                    { role: "Spy", team: "evil", instruction: "Show the Spy the Grimoire. They see all roles and tokens.", action: "Show them the Grimoire" },
+                    { role: "Washerwoman", team: "good", instruction: "Point to 2 players, one of which is the Townsfolk you're showing. Show the Townsfolk token.", action: "Point to 2 players, show Townsfolk token" },
+                    { role: "Librarian", team: "good", instruction: "Point to 2 players, one of which is the Outsider you're showing. Show the Outsider token. (Or show 'zero' if no Outsiders)", action: "Point to 2 players, show Outsider token" },
+                    { role: "Investigator", team: "good", instruction: "Point to 2 players, one of which is the Minion you're showing. Show the Minion token.", action: "Point to 2 players, show Minion token" },
+                    { role: "Chef", team: "good", instruction: "Show fingers for the number of pairs of evil players sitting adjacent.", action: "Show number of evil pairs (fingers)" },
+                    { role: "Empath", team: "good", instruction: "Show fingers for the number of their alive neighbors (left & right) that are evil.", action: "Show 0, 1, or 2 fingers" },
+                    { role: "Fortune Teller", team: "good", instruction: "The Fortune Teller points to 2 players. Nod 'yes' if either is the Demon (or Red Herring), shake 'no' otherwise.", action: "They choose 2 players, nod/shake" },
+                    { role: "Butler", team: "good", instruction: "The Butler points to a player. That is their Master tomorrow - they may only vote when their Master votes.", action: "They choose their Master" },
+                ],
+                otherNights: [
+                    { role: "Poisoner", team: "evil", instruction: "The Poisoner wakes and points to a player to poison.", action: "They choose who to poison" },
+                    { role: "Monk", team: "good", instruction: "The Monk points to a player (not themselves). That player is safe from the Demon tonight.", action: "They choose who to protect" },
+                    { role: "Spy", team: "evil", instruction: "Show the Spy the Grimoire.", action: "Show them the Grimoire" },
+                    { role: "Scarlet Woman", team: "evil", instruction: "(Only if Demon died today with 5+ alive) The Scarlet Woman becomes the Imp.", action: "Show them: 'You are the Imp'" },
+                    { role: "Imp", team: "evil", instruction: "The Imp points to a player to kill. If they choose themselves, a Minion becomes the Imp.", action: "They choose who to kill" },
+                    { role: "Ravenkeeper", team: "good", instruction: "(Only if they died tonight) The Ravenkeeper points to a player. Show that player's character token.", action: "They choose, show character token" },
+                    { role: "Undertaker", team: "good", instruction: "(Only if someone was executed today) Show the character token of the player who was executed.", action: "Show executed player's token" },
+                    { role: "Empath", team: "good", instruction: "Show fingers for the number of their alive neighbors that are evil.", action: "Show 0, 1, or 2 fingers" },
+                    { role: "Fortune Teller", team: "good", instruction: "The Fortune Teller points to 2 players. Nod 'yes' if either is the Demon (or Red Herring), shake 'no' otherwise.", action: "They choose 2 players, nod/shake" },
+                    { role: "Butler", team: "good", instruction: "The Butler points to a player to be their Master.", action: "They choose their Master" },
+                ],
+                minions: ["Poisoner", "Spy", "Scarlet Woman", "Baron"],
+                demons: ["Imp"]
+            },
+            bad_moon_rising: {
+                name: "Bad Moon Rising",
+                firstNight: [
+                    { role: "Lunatic", team: "good", instruction: "Show the Lunatic 3 bluffs (not in play). Point to players as their 'Minions'. They think they are the Demon.", action: "Show bluffs, point to fake Minions" },
+                    { role: "Sailor", team: "good", instruction: "The Sailor points to a player. Tonight, that player is drunk and the Sailor is safe.", action: "They choose who to make drunk" },
+                    { role: "Courtier", team: "good", instruction: "The Courtier points to a player. That player is drunk for 3 nights and 3 days.", action: "They choose who to make drunk" },
+                    { role: "Godfather", team: "evil", instruction: "Show the Godfather the Outsiders in play.", action: "Point to Outsiders" },
+                    { role: "Devil's Advocate", team: "evil", instruction: "The Devil's Advocate points to a player. If that player is executed tomorrow, they don't die.", action: "They choose who to protect" },
+                    { role: "Pukka", team: "evil", instruction: "The Pukka points to a player to poison. They die tomorrow night.", action: "They choose who to poison" },
+                    { role: "Grandmother", team: "good", instruction: "Show the Grandmother who their grandchild is.", action: "Point to grandchild, show their role" },
+                    { role: "Chambermaid", team: "good", instruction: "The Chambermaid points to 2 players. Show them how many woke tonight.", action: "They choose 2, show number (fingers)" },
+                    { role: "Goon", team: "good", instruction: "The Goon becomes drunk until dusk and the 1st player to choose them becomes drunk.", action: "(First night only)" },
+                ],
+                otherNights: [
+                    { role: "Sailor", team: "good", instruction: "The Sailor points to a player. Tonight, that player is drunk and the Sailor is safe.", action: "They choose who to make drunk" },
+                    { role: "Courtier", team: "good", instruction: "If the Courtier hasn't used their ability, they may point to a player to make drunk for 3 nights/days.", action: "They may choose (once per game)" },
+                    { role: "Innkeeper", team: "good", instruction: "The Innkeeper points to 2 players. Those players are safe tonight but one is drunk.", action: "They choose 2 to protect" },
+                    { role: "Devil's Advocate", team: "evil", instruction: "The Devil's Advocate points to a player. If that player is executed tomorrow, they don't die.", action: "They choose who to protect" },
+                    { role: "Gambler", team: "good", instruction: "The Gambler points to a player and guesses their role. If wrong, the Gambler dies.", action: "They guess a player's role" },
+                    { role: "Exorcist", team: "good", instruction: "The Exorcist points to a player. If that player is the Demon, the Demon doesn't wake tonight.", action: "They choose who to target" },
+                    { role: "Lunatic", team: "good", instruction: "The Lunatic 'kills' a player (show them choosing but ignore it).", action: "They think they're killing" },
+                    { role: "Zombuul", team: "evil", instruction: "If no one died today, the Zombuul kills a player.", action: "They choose who to kill" },
+                    { role: "Pukka", team: "evil", instruction: "The player poisoned last night dies. The Pukka points to a new player to poison.", action: "Previous target dies, new poison" },
+                    { role: "Shabaloth", team: "evil", instruction: "The Shabaloth points to 2 players to kill. A dead player who was killed last night might regurgitate.", action: "They choose 2 to kill" },
+                    { role: "Po", team: "evil", instruction: "The Po kills a player. If the Po chose no one last night, they may kill 3 players instead.", action: "They choose 1 (or 3)" },
+                    { role: "Assassin", team: "evil", instruction: "Once per game, the Assassin kills a player (bypasses protection).", action: "They may use ability (once)" },
+                    { role: "Godfather", team: "evil", instruction: "If an Outsider died today, the Godfather chooses a player to kill.", action: "They choose who to kill" },
+                    { role: "Professor", team: "good", instruction: "Once per game, the Professor chooses a dead player. If Townsfolk, they live.", action: "They may use ability (once)" },
+                    { role: "Gossip", team: "good", instruction: "If the Gossip's statement was true today, a player dies.", action: "Check if statement was true" },
+                    { role: "Moonchild", team: "good", instruction: "If the Moonchild died last night, they point to a player. If Good, that player dies.", action: "They choose (if they died)" },
+                    { role: "Tinker", team: "good", instruction: "The Tinker might die (Storyteller's choice).", action: "You may kill the Tinker" },
+                    { role: "Chambermaid", team: "good", instruction: "The Chambermaid points to 2 players. Show them how many woke tonight.", action: "They choose 2, show number (fingers)" },
+                ],
+                minions: ["Godfather", "Devil's Advocate", "Assassin", "Mastermind"],
+                demons: ["Zombuul", "Pukka", "Shabaloth", "Po"]
+            }
         };
 
-        const DEMON_INFO = {
-            instruction: "Wake the Demon. Show them their Minions. Show them 3 not-in-play characters they can safely claim.",
-            roles: ["Imp"]
-        };
+        let currentEdition = 'trouble_brewing';
 
         let currentNight = 1;
         let activeRoles = new Set();
@@ -364,6 +400,11 @@
 
             if (grimoireState) {
                 const grimoire = JSON.parse(grimoireState);
+                // Sync edition from grimoire
+                if (grimoire.edition && EDITIONS[grimoire.edition]) {
+                    currentEdition = grimoire.edition;
+                    document.getElementById('editionSelect').value = currentEdition;
+                }
                 grimoire.seats.forEach(seat => {
                     if (seat.role) {
                         activeRoles.add(seat.role);
@@ -392,6 +433,11 @@
             renderNightOrder();
         }
 
+        function changeEdition() {
+            currentEdition = document.getElementById('editionSelect').value;
+            renderNightOrder();
+        }
+
         function changeNight(delta) {
             currentNight = Math.max(1, currentNight + delta);
             document.getElementById('nightNum').textContent = currentNight;
@@ -406,8 +452,9 @@
 
         function renderNightOrder() {
             const container = document.getElementById('nightOrder');
+            const edition = EDITIONS[currentEdition];
             const isFirstNight = currentNight === 1;
-            const order = isFirstNight ? FIRST_NIGHT_ORDER : OTHER_NIGHTS_ORDER;
+            const order = isFirstNight ? edition.firstNight : edition.otherNights;
 
             let html = '';
 
@@ -416,7 +463,7 @@
                 html += '<div class="section-header">Minion & Demon Info (Before individual wakes)</div>';
 
                 // Minion info
-                const activeMinions = MINION_INFO.roles.filter(r => activeRoles.has(r));
+                const activeMinions = edition.minions.filter(r => activeRoles.has(r));
                 html += `
                     <div class="role-card evil ${activeMinions.length === 0 ? 'inactive' : ''}">
                         <div class="role-number">0</div>
@@ -431,7 +478,7 @@
                 `;
 
                 // Demon info
-                const activeDemons = DEMON_INFO.roles.filter(r => activeRoles.has(r));
+                const activeDemons = edition.demons.filter(r => activeRoles.has(r));
                 html += `
                     <div class="role-card evil ${activeDemons.length === 0 ? 'inactive' : ''}">
                         <div class="role-number">0</div>

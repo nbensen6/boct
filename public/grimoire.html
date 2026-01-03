@@ -403,6 +403,13 @@
 
         <div class="controls">
             <label style="color: var(--text); display: flex; align-items: center; gap: 8px;">
+                <span style="font-family: 'Cinzel', serif;">Edition:</span>
+                <select class="player-count-select" id="editionSelect" onchange="changeEdition()">
+                    <option value="trouble_brewing">Trouble Brewing</option>
+                    <option value="bad_moon_rising">Bad Moon Rising</option>
+                </select>
+            </label>
+            <label style="color: var(--text); display: flex; align-items: center; gap: 8px;">
                 <span style="font-family: 'Cinzel', serif;">Players:</span>
                 <select class="player-count-select" id="playerCount" onchange="updateSeats()">
                     <option value="5">5</option>
@@ -458,19 +465,36 @@
     </div>
 
     <script>
-        const ROLES = {
-            townsfolk: [
-                "Washerwoman", "Librarian", "Investigator", "Chef", "Empath",
-                "Fortune Teller", "Undertaker", "Monk", "Ravenkeeper", "Virgin",
-                "Slayer", "Soldier", "Mayor"
-            ],
-            outsiders: ["Butler", "Drunk", "Recluse", "Saint"],
-            minions: ["Poisoner", "Spy", "Scarlet Woman", "Baron"],
-            demons: ["Imp"]
+        const EDITIONS = {
+            trouble_brewing: {
+                name: "Trouble Brewing",
+                townsfolk: [
+                    "Washerwoman", "Librarian", "Investigator", "Chef", "Empath",
+                    "Fortune Teller", "Undertaker", "Monk", "Ravenkeeper", "Virgin",
+                    "Slayer", "Soldier", "Mayor"
+                ],
+                outsiders: ["Butler", "Drunk", "Recluse", "Saint"],
+                minions: ["Poisoner", "Spy", "Scarlet Woman", "Baron"],
+                demons: ["Imp"]
+            },
+            bad_moon_rising: {
+                name: "Bad Moon Rising",
+                townsfolk: [
+                    "Grandmother", "Sailor", "Chambermaid", "Exorcist", "Innkeeper",
+                    "Gambler", "Gossip", "Courtier", "Professor", "Minstrel",
+                    "Tea Lady", "Pacifist", "Fool"
+                ],
+                outsiders: ["Tinker", "Moonchild", "Goon", "Lunatic"],
+                minions: ["Godfather", "Devil's Advocate", "Assassin", "Mastermind"],
+                demons: ["Zombuul", "Pukka", "Shabaloth", "Po"]
+            }
         };
+
+        let currentEdition = 'trouble_brewing';
 
         let grimoireState = {
             playerCount: 13,
+            edition: 'trouble_brewing',
             seats: []
         };
 
@@ -484,10 +508,21 @@
             if (saved) {
                 grimoireState = JSON.parse(saved);
                 document.getElementById('playerCount').value = grimoireState.playerCount;
+                if (grimoireState.edition) {
+                    currentEdition = grimoireState.edition;
+                    document.getElementById('editionSelect').value = currentEdition;
+                }
             }
             initSeats();
             renderTokens();
             renderSeats();
+        }
+
+        function changeEdition() {
+            currentEdition = document.getElementById('editionSelect').value;
+            grimoireState.edition = currentEdition;
+            saveState();
+            renderTokens();
         }
 
         function saveState() {
@@ -577,13 +612,14 @@
 
         function renderTokens() {
             const usedRoles = new Set(grimoireState.seats.filter(s => s.role).map(s => s.role));
+            const edition = EDITIONS[currentEdition];
 
             ['townsfolk', 'outsiders', 'minions', 'demons'].forEach(category => {
                 const container = document.getElementById(category === 'outsiders' ? 'outsiderTokens' :
                                   category === 'minions' ? 'minionTokens' :
                                   category === 'demons' ? 'demonTokens' : 'townsfolkTokens');
 
-                container.innerHTML = ROLES[category].map(role => {
+                container.innerHTML = edition[category].map(role => {
                     const tokenClass = category === 'outsiders' ? 'outsider' :
                                       category === 'minions' ? 'minion' :
                                       category === 'demons' ? 'demon' : 'townsfolk';
