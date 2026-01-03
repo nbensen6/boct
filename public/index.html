@@ -996,16 +996,22 @@
             qrContainer.innerHTML = '';
 
             if (gameState.code) {
-                QRCode.toCanvas(joinUrl, {
+                // Create canvas element first
+                const canvas = document.createElement('canvas');
+                qrContainer.appendChild(canvas);
+
+                QRCode.toCanvas(canvas, joinUrl, {
                     width: 180,
-                    margin: 0,
+                    margin: 1,
                     color: {
                         dark: '#1a0a0a',
                         light: '#ffffff'
                     }
-                }, (error, canvas) => {
-                    if (!error) {
-                        qrContainer.appendChild(canvas);
+                }, function(error) {
+                    if (error) {
+                        console.error('QR Code error:', error);
+                        // Fallback: show just the URL more prominently
+                        qrContainer.innerHTML = '<div style="padding: 20px; background: #fff; color: #000; border-radius: 8px; font-size: 14px;">Scan not available - use code above</div>';
                     }
                 });
             }
