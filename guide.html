@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Storyteller Guide - Blood on the Clocktower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-dark: #0d0d0d;
+            --bg-card: rgba(20, 15, 15, 0.9);
+            --accent: #8b0000;
+            --accent-light: #c41e3a;
+            --gold: #d4af37;
+            --gold-dark: #996515;
+            --text: #e8e4d9;
+            --text-muted: #888;
+            --good: #4a9eff;
+            --evil: #c41e3a;
+            --dead: #444;
+            --parchment: #d4c5a9;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            line-height: 1.7;
+        }
+
+        /* Gothic background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 60px 100px at 30% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 70px 90px at 55% 0%, rgba(139, 0, 0, 0.35) 0%, transparent 70%),
+                radial-gradient(ellipse 50px 80px at 75% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 300px 300px at 85% 15%, rgba(200, 200, 180, 0.1) 0%, transparent 60%),
+                linear-gradient(to top, rgba(50, 40, 40, 0.8) 0%, transparent 30%),
+                linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 3%;
+            width: 180px;
+            height: 350px;
+            background: linear-gradient(to top, #0a0505 0%, #0a0505 60%, transparent 60%);
+            clip-path: polygon(
+                30% 100%, 30% 40%, 20% 40%, 20% 35%, 35% 35%, 35% 25%,
+                40% 25%, 40% 15%, 45% 15%, 45% 5%, 50% 0%, 55% 5%,
+                55% 15%, 60% 15%, 60% 25%, 65% 25%, 65% 35%, 80% 35%,
+                80% 40%, 70% 40%, 70% 100%
+            );
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.3), rgba(20, 15, 15, 0.9));
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+        }
+
+        .nav a {
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover, .nav a.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+        }
+
+        .clock-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, rgba(20, 15, 15, 0.9) 0%, rgba(10, 5, 5, 1) 100%);
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5), inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .clock-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 20px;
+            background: var(--gold);
+            transform: translate(-50%, -100%) rotate(30deg);
+            transform-origin: bottom center;
+        }
+
+        .clock-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 14px;
+            background: var(--accent-light);
+            transform: translate(-50%, -100%) rotate(-60deg);
+            transform-origin: bottom center;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 2rem;
+            margin: 0 0 8px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(139, 0, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--accent-light);
+            font-style: italic;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .section h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.4rem;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--gold-dark);
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--accent-light);
+            font-size: 1.1rem;
+            margin: 20px 0 12px 0;
+        }
+
+        .section h3:first-of-type {
+            margin-top: 0;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        li strong {
+            color: var(--gold);
+        }
+
+        .highlight-box {
+            background: rgba(139, 0, 0, 0.15);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .highlight-box.good {
+            background: rgba(74, 158, 255, 0.1);
+            border-color: var(--good);
+        }
+
+        .narration-box {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid var(--gold);
+            padding: 16px;
+            margin: 16px 0;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .narration-box::before {
+            content: '"';
+            font-size: 2rem;
+            color: var(--gold);
+            font-family: Georgia, serif;
+            line-height: 0;
+            vertical-align: -0.4em;
+            margin-right: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--gold-dark);
+        }
+
+        th {
+            background: rgba(139, 0, 0, 0.3);
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        td {
+            background: rgba(20, 15, 15, 0.6);
+        }
+
+        tr:hover td {
+            background: rgba(139, 0, 0, 0.15);
+        }
+
+        .setup-card {
+            background: rgba(30, 20, 20, 0.8);
+            border: 2px solid var(--gold-dark);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .setup-card h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            margin: 0 0 12px 0;
+            font-size: 1.2rem;
+        }
+
+        .setup-card .why {
+            background: rgba(74, 158, 255, 0.1);
+            border-left: 3px solid var(--good);
+            padding: 10px 14px;
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        .role-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .role-tag {
+            background: rgba(74, 158, 255, 0.15);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            color: var(--good);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .role-tag.evil {
+            background: rgba(196, 30, 58, 0.15);
+            border-color: rgba(196, 30, 58, 0.3);
+            color: var(--evil);
+        }
+
+        .role-tag.demon {
+            background: rgba(139, 0, 0, 0.3);
+            border-color: var(--accent);
+            color: var(--accent-light);
+        }
+
+        .warning {
+            background: rgba(139, 0, 0, 0.2);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 12px 0;
+        }
+
+        .warning::before {
+            content: '!';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 8px;
+            font-size: 0.9rem;
+            line-height: 20px;
+        }
+
+        .tip {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--gold-dark);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 12px 0;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--gold-dark), transparent);
+            margin: 30px 0;
+        }
+
+        .toc {
+            background: rgba(30, 20, 20, 0.8);
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+        }
+
+        .toc h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .toc a {
+            color: var(--text);
+            text-decoration: none;
+            padding: 4px 0;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--gold);
+        }
+
+        .toc a::before {
+            content: '>';
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .section {
+                padding: 16px;
+            }
+
+            .role-list {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 8px 4px;
+            }
+
+            .nav a {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold-dark);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">Game Tracker</a>
+            <a href="guide.html" class="active">Storyteller Guide</a>
+        </nav>
+
+        <div class="clock-icon"></div>
+        <h1>Storyteller Guide</h1>
+        <p class="subtitle">Your handbook for running Blood on the Clocktower</p>
+
+        <div class="toc">
+            <h3>Quick Navigation</h3>
+            <ul>
+                <li><a href="#setup">Pre-Game Setup</a></li>
+                <li><a href="#rules">Rules to Tell Players</a></li>
+                <li><a href="#night">Night Phase Tips</a></li>
+                <li><a href="#balance">Balancing the Game</a></li>
+                <li><a href="#narration">Narration Ideas</a></li>
+                <li><a href="#mistakes">Common Mistakes</a></li>
+                <li><a href="#reference">Player Count Reference</a></li>
+                <li><a href="#setups-13">13-Player Setups</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="setup">
+            <h2>Pre-Game Setup</h2>
+
+            <h3>Physical Setup</h3>
+            <ul>
+                <li>Arrange chairs in a rough circle/square with a <strong>definite clockwise order</strong></li>
+                <li>Leave a gap between two chairs so you can enter/exit easily</li>
+                <li>Keep the center clear of tables or tripping hazards</li>
+                <li>Position your Grimoire where players walking around won't accidentally see it</li>
+            </ul>
+
+            <h3>Character Selection (Trouble Brewing)</h3>
+            <ul>
+                <li>Use the setup sheet to determine how many Townsfolk, Outsiders, Minions, and Demon based on player count</li>
+                <li>A solid <strong>beginner-friendly 8-player setup</strong>: Washerwoman, Librarian, Investigator, Chef, Empath, Fortune Teller, Undertaker, Drunk (register as Investigator), Scarlet Woman, Imp</li>
+                <li>Put selected character tokens in the bag, have players draw one each secretly</li>
+            </ul>
+
+            <h3>First Night Prep</h3>
+            <ul>
+                <li>Have your night sheet ready with the night order</li>
+                <li>Pre-plan what information you'll give to drunk/poisoned players</li>
+                <li>Place reminder tokens you'll need on the left side of the Grimoire</li>
+            </ul>
+        </section>
+
+        <section class="section" id="rules">
+            <h2>Rules Explanation</h2>
+            <p>Keep it simple! Tell players only <strong>four things</strong> they need to remember:</p>
+
+            <div class="highlight-box good">
+                <ol>
+                    <li><strong>You may say whatever you want at any time</strong> - talk publicly or privately</li>
+                    <li><strong>No peeking</strong> - keep your token secret, never look in the Grimoire</li>
+                    <li><strong>Ask me questions anytime</strong> - even evil players can ask how their bluff character works</li>
+                    <li><strong>Dead players still matter</strong> - you can talk, you win/lose with your team, and you get one final vote</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="section" id="night">
+            <h2>Storyteller Tips: Night Phase</h2>
+            <ul>
+                <li><strong>Move around the circle randomly</strong> so footsteps don't reveal who you're waking</li>
+                <li>Tap shoulders/knees quietly to wake players</li>
+                <li>When evil players bluff characters that manipulate the Grimoire, <strong>pretend to move tokens</strong> so veterans can't tell the difference</li>
+                <li>Use consistent signals: <strong>2 taps = eyes open</strong>, <strong>finger to lips = eyes closed</strong></li>
+            </ul>
+        </section>
+
+        <section class="section" id="balance">
+            <h2>Balancing the Game</h2>
+            <p>Your goal is to get the game to the <strong>final 3-player showdown</strong> - that's when it's most exciting. Help the weaker team:</p>
+
+            <div class="highlight-box">
+                <h3>If Good is Crushing Evil:</h3>
+                <ul>
+                    <li>Give the drunk Empath correct info</li>
+                    <li>Let the Spy register as a Townsfolk</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box good">
+                <h3>If Evil is Dominating:</h3>
+                <ul>
+                    <li>Give poisoned players accurate information</li>
+                    <li>Have the Mayor's night attack kill a Minion instead</li>
+                </ul>
+            </div>
+
+            <h3>Handling Misinformation</h3>
+            <ul>
+                <li>You're allowed to lie to drunk/poisoned players - they won't know their info is bad</li>
+                <li><strong>Plan what false info you'll give BEFORE night starts</strong> so you don't scramble</li>
+            </ul>
+
+            <div class="warning">
+                <strong>Don't Break the Rules</strong> - Even if it seems fun, stick to the rules. You have plenty of flexibility within the rules to create drama.
+            </div>
+        </section>
+
+        <section class="section" id="narration">
+            <h2>Narration Tips</h2>
+            <p>You can narrate as much or as little as you want. Here are some ideas:</p>
+
+            <div class="narration-box">
+                It was a dark and stormy night in Ravenswood Bluff. On the stroke of midnight, a scream echoes through the town square...
+            </div>
+
+            <h3>Creative Deaths</h3>
+            <p>Before executions, ask: <strong>"How would you like to die?"</strong></p>
+            <p>Let players be creative - walk off a cliff, death by chocolate, struck by lightning, etc.</p>
+
+            <h3>Announcing Victory</h3>
+            <ul>
+                <li>Don't just mumble "evil wins"</li>
+                <li>Build dramatic pause, get everyone's attention</li>
+                <li>Announce with flair so the winning team can celebrate properly!</li>
+            </ul>
+
+            <div class="tip">
+                <strong>Not comfortable narrating?</strong> That's fine too. A mostly silent Storyteller still runs great games - the players create their own fun.
+            </div>
+        </section>
+
+        <section class="section" id="mistakes">
+            <h2>Common New Storyteller Mistakes</h2>
+            <ul>
+                <li><strong>Rushing nights</strong> - Slow down and double-check your work</li>
+                <li><strong>Forgetting reminder tokens</strong> - Track poison, drunk status, and used abilities</li>
+                <li><strong>Nudging player choices</strong> - Let players make weird decisions; they might have a plan you don't see</li>
+                <li><strong>Over-explaining to new players</strong> - Drip-feed rules as needed rather than dumping everything upfront</li>
+                <li><strong>Post-game "you should have done X"</strong> - Avoid shaming, it kills the vibe</li>
+            </ul>
+        </section>
+
+        <section class="section" id="reference">
+            <h2>Quick Reference: Player Count Setup</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Players</th>
+                        <th>Townsfolk</th>
+                        <th>Outsiders</th>
+                        <th>Minions</th>
+                        <th>Demon</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>5</td><td>3</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>6</td><td>3</td><td>1</td><td>1</td><td>1</td></tr>
+                    <tr><td>7</td><td>5</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>8</td><td>5</td><td>1</td><td>1</td><td>1</td></tr>
+                    <tr><td>9</td><td>5</td><td>2</td><td>1</td><td>1</td></tr>
+                    <tr><td>10</td><td>7</td><td>0</td><td>2</td><td>1</td></tr>
+                    <tr><td>11</td><td>7</td><td>1</td><td>2</td><td>1</td></tr>
+                    <tr><td>12</td><td>7</td><td>2</td><td>2</td><td>1</td></tr>
+                    <tr style="background: rgba(139, 0, 0, 0.2);">
+                        <td><strong>13</strong></td>
+                        <td><strong>9</strong></td>
+                        <td><strong>0</strong></td>
+                        <td><strong>3</strong></td>
+                        <td><strong>1</strong></td>
+                    </tr>
+                    <tr><td>14</td><td>9</td><td>1</td><td>3</td><td>1</td></tr>
+                    <tr><td>15</td><td>9</td><td>2</td><td>3</td><td>1</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="divider"></div>
+
+        <section class="section" id="setups-13">
+            <h2>Beginner-Friendly 13-Player Setups</h2>
+            <p>With 13 players, you have <strong>9 Townsfolk, 0 Outsiders, 3 Minions, and 1 Demon</strong>. This is a significant jump - you're at maximum minions, which makes the game considerably more challenging.</p>
+
+            <div class="setup-card">
+                <h4>Setup 1: Information-Heavy (Recommended for First Game)</h4>
+
+                <p><strong>Townsfolk (9):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag">Washerwoman</span>
+                    <span class="role-tag">Librarian</span>
+                    <span class="role-tag">Investigator</span>
+                    <span class="role-tag">Chef</span>
+                    <span class="role-tag">Empath</span>
+                    <span class="role-tag">Fortune Teller</span>
+                    <span class="role-tag">Undertaker</span>
+                    <span class="role-tag">Ravenkeeper</span>
+                    <span class="role-tag">Slayer</span>
+                </div>
+
+                <p><strong>Minions (3):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag evil">Poisoner</span>
+                    <span class="role-tag evil">Scarlet Woman</span>
+                    <span class="role-tag evil">Baron*</span>
+                </div>
+
+                <p><strong>Demon (1):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag demon">Imp</span>
+                </div>
+
+                <p><em>*Baron adds +2 Outsiders, so swap 2 Townsfolk for Saint & Drunk</em></p>
+
+                <div class="why">
+                    <strong>Why it works:</strong> Tons of information characters get players talking immediately. The Baron adds Outsiders which creates noise and bluff opportunities for evil. New evil players have safe bluffs available.
+                </div>
+            </div>
+
+            <div class="setup-card">
+                <h4>Setup 2: Balanced with Protection</h4>
+
+                <p><strong>Townsfolk (9):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag">Washerwoman</span>
+                    <span class="role-tag">Librarian</span>
+                    <span class="role-tag">Chef</span>
+                    <span class="role-tag">Empath</span>
+                    <span class="role-tag">Fortune Teller</span>
+                    <span class="role-tag">Undertaker</span>
+                    <span class="role-tag">Monk</span>
+                    <span class="role-tag">Soldier</span>
+                    <span class="role-tag">Mayor</span>
+                </div>
+
+                <p><strong>Minions (3):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag evil">Poisoner</span>
+                    <span class="role-tag evil">Spy</span>
+                    <span class="role-tag evil">Scarlet Woman</span>
+                </div>
+
+                <p><strong>Demon (1):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag demon">Imp</span>
+                </div>
+
+                <div class="why">
+                    <strong>Why it works:</strong> Monk and Soldier give good some protection against 3 minions poisoning/killing. The Spy helps evil coordinate. Mayor gives an alternate win condition.
+                </div>
+            </div>
+
+            <div class="setup-card">
+                <h4>Setup 3: Classic with Training Wheels</h4>
+
+                <p><strong>Townsfolk (9):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag">Washerwoman</span>
+                    <span class="role-tag">Librarian</span>
+                    <span class="role-tag">Investigator</span>
+                    <span class="role-tag">Chef</span>
+                    <span class="role-tag">Empath</span>
+                    <span class="role-tag">Fortune Teller</span>
+                    <span class="role-tag">Undertaker</span>
+                    <span class="role-tag">Virgin</span>
+                    <span class="role-tag">Slayer</span>
+                </div>
+
+                <p><strong>Minions (3):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag evil">Poisoner</span>
+                    <span class="role-tag evil">Spy</span>
+                    <span class="role-tag evil">Baron*</span>
+                </div>
+
+                <p><strong>Demon (1):</strong></p>
+                <div class="role-list">
+                    <span class="role-tag demon">Imp</span>
+                </div>
+
+                <p><em>*Baron adds +2 Outsiders, so swap 2 Townsfolk for Drunk + Saint</em></p>
+
+                <div class="why">
+                    <strong>Why it works:</strong> Virgin can confirm players early. Slayer gives good a direct shot at the demon. Baron creates outsider confusion.
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h3>Tips for Running 13 Players</h3>
+                <ul>
+                    <li><strong>3 minions is a lot</strong> - Evil has significant poisoning/information corruption power. Consider helping good subtly if they're struggling</li>
+                    <li><strong>Give evil 3 good bluffs</strong> - On first night, show the Demon 3 characters not in play</li>
+                    <li><strong>Minions know each other</strong> - All 3 minions wake and learn who the other minions and demon are</li>
+                    <li><strong>Games run longer</strong> - Budget 60-90 minutes</li>
+                    <li><strong>More dead players = more dead votes</strong> - Remind everyone that dead players still win/lose with their team and get one final vote</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Have Fun!</h2>
+            <p>The wiki at <strong>wiki.bloodontheclocktower.com</strong> is a great reference if you hit any weird edge cases mid-game.</p>
+            <p style="text-align: center; margin-top: 20px; font-style: italic; color: var(--text-muted);">
+                Good luck, Storyteller. The fate of Ravenswood Bluff rests in your hands...
+            </p>
+        </section>
+    </div>
+</body>
+</html>

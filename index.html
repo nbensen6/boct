@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Blood on the Clocktower Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -11,31 +14,164 @@
         }
 
         :root {
-            --bg-dark: #1a1a2e;
-            --bg-card: #16213e;
-            --accent: #e94560;
-            --accent-light: #ff6b6b;
-            --text: #eee;
+            --bg-dark: #0d0d0d;
+            --bg-card: rgba(20, 15, 15, 0.9);
+            --accent: #8b0000;
+            --accent-light: #c41e3a;
+            --gold: #d4af37;
+            --gold-dark: #996515;
+            --text: #e8e4d9;
             --text-muted: #888;
-            --good: #4ade80;
-            --evil: #f87171;
-            --dead: #555;
+            --good: #4a9eff;
+            --evil: #c41e3a;
+            --dead: #444;
+            --parchment: #d4c5a9;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Crimson Text', Georgia, serif;
             background: var(--bg-dark);
             color: var(--text);
             margin: 0;
-            padding: 16px;
+            padding: 0;
             min-height: 100vh;
+            position: relative;
+        }
+
+        /* Gothic background with clocktower silhouette */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                /* Blood drips from top */
+                radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 60px 100px at 30% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 70px 90px at 55% 0%, rgba(139, 0, 0, 0.35) 0%, transparent 70%),
+                radial-gradient(ellipse 50px 80px at 75% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                /* Moon glow */
+                radial-gradient(ellipse 300px 300px at 85% 15%, rgba(200, 200, 180, 0.1) 0%, transparent 60%),
+                /* Fog at bottom */
+                linear-gradient(to top, rgba(50, 40, 40, 0.8) 0%, transparent 30%),
+                /* Base gradient */
+                linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
+            z-index: -2;
+        }
+
+        /* Clocktower silhouette */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            right: 5%;
+            width: 200px;
+            height: 400px;
+            background: linear-gradient(to top,
+                #0a0505 0%,
+                #0a0505 60%,
+                transparent 60%
+            );
+            clip-path: polygon(
+                30% 100%, 30% 40%, 20% 40%, 20% 35%, 35% 35%, 35% 25%,
+                40% 25%, 40% 15%, 45% 15%, 45% 5%, 50% 0%, 55% 5%,
+                55% 15%, 60% 15%, 60% 25%, 65% 25%, 65% 35%, 80% 35%,
+                80% 40%, 70% 40%, 70% 100%
+            );
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.3), rgba(20, 15, 15, 0.9));
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+        }
+
+        .nav a {
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover, .nav a.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
         }
 
         h1 {
             text-align: center;
-            color: var(--accent);
-            font-size: 1.5rem;
-            margin: 0 0 16px 0;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 2rem;
+            margin: 0 0 8px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(139, 0, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--accent-light);
+            font-style: italic;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* Clock decoration */
+        .clock-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, rgba(20, 15, 15, 0.9) 0%, rgba(10, 5, 5, 1) 100%);
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5), inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .clock-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 20px;
+            background: var(--gold);
+            transform: translate(-50%, -100%) rotate(30deg);
+            transform-origin: bottom center;
+        }
+
+        .clock-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 14px;
+            background: var(--accent-light);
+            transform: translate(-50%, -100%) rotate(-60deg);
+            transform-origin: bottom center;
         }
 
         .phase-bar {
@@ -44,34 +180,41 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 16px;
-            padding: 12px;
+            padding: 16px;
             background: var(--bg-card);
+            border: 1px solid var(--gold-dark);
             border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         .phase-btn {
-            padding: 12px 24px;
-            border: none;
+            padding: 12px 28px;
+            border: 2px solid;
             border-radius: 8px;
+            font-family: 'Cinzel', serif;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .phase-btn.day {
-            background: #fbbf24;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-color: #d97706;
             color: #1a1a2e;
         }
 
         .phase-btn.night {
-            background: #3b82f6;
-            color: white;
+            background: linear-gradient(135deg, #1e3a5f, #0f172a);
+            border-color: #3b82f6;
+            color: #93c5fd;
         }
 
         .phase-btn.active {
             transform: scale(1.1);
-            box-shadow: 0 0 20px currentColor;
+            box-shadow: 0 0 30px currentColor;
         }
 
         .phase-btn:not(.active) {
@@ -79,9 +222,11 @@
         }
 
         .day-counter {
+            font-family: 'Cinzel', serif;
             font-size: 1.5rem;
             font-weight: bold;
-            color: var(--text);
+            color: var(--gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
         .add-player {
@@ -93,33 +238,49 @@
         .add-player input {
             flex: 1;
             padding: 14px;
-            border: 2px solid var(--bg-card);
+            border: 2px solid var(--gold-dark);
             border-radius: 8px;
             background: var(--bg-card);
             color: var(--text);
+            font-family: 'Crimson Text', serif;
             font-size: 1rem;
         }
 
         .add-player input:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .add-player input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         .add-player button {
-            padding: 14px 20px;
-            background: var(--accent);
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
             color: white;
-            border: none;
+            border: 2px solid var(--accent-light);
             border-radius: 8px;
+            font-family: 'Cinzel', serif;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .add-player button:hover {
+            box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+            transform: translateY(-2px);
         }
 
         .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
             margin-bottom: 16px;
         }
 
@@ -127,37 +288,69 @@
             background: var(--bg-card);
             border-radius: 12px;
             padding: 16px;
-            border-left: 4px solid var(--text-muted);
-            transition: all 0.2s;
+            border: 2px solid var(--gold-dark);
+            border-left-width: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
         }
 
         .player-card.good {
             border-left-color: var(--good);
+            box-shadow: 0 4px 15px rgba(74, 158, 255, 0.2);
         }
 
         .player-card.evil {
             border-left-color: var(--evil);
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.2);
         }
 
         .player-card.dead {
-            opacity: 0.5;
-            background: #111;
+            opacity: 0.6;
+            background: rgba(10, 5, 5, 0.95);
+            border-color: var(--dead);
         }
 
         .player-card.dead .player-name {
             text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .player-card.dead::before {
+            content: 'DEAD';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: var(--accent);
+            opacity: 0.3;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 4px;
+        }
+
+        .player-card {
+            position: relative;
         }
 
         .player-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .player-name {
-            font-size: 1.2rem;
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
             font-weight: bold;
+            color: var(--gold);
         }
 
         .player-status {
@@ -166,43 +359,55 @@
         }
 
         .status-btn {
-            width: 36px;
-            height: 36px;
-            border: none;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--gold-dark);
             border-radius: 8px;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s;
         }
 
         .status-btn.kill {
-            background: var(--dead);
+            background: linear-gradient(135deg, #2a1a1a, #1a0a0a);
+        }
+
+        .status-btn.kill:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
         }
 
         .status-btn.kill.dead {
-            background: var(--good);
+            background: linear-gradient(135deg, #1a3a1a, #0a1a0a);
+            border-color: #22c55e;
         }
 
         .status-btn.remove {
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), #5a0000);
+        }
+
+        .status-btn.remove:hover {
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.7);
         }
 
         .player-role {
             display: flex;
             gap: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .player-role select {
             flex: 1;
-            padding: 8px;
-            border: none;
+            padding: 10px;
+            border: 1px solid var(--gold-dark);
             border-radius: 6px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(30, 20, 20, 0.9);
             color: var(--text);
-            font-size: 0.9rem;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
         }
 
         .team-toggle {
@@ -211,88 +416,114 @@
         }
 
         .team-btn {
-            padding: 8px 12px;
-            border: none;
+            padding: 10px 14px;
+            border: 2px solid transparent;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
             font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
         }
 
         .team-btn.good-btn {
-            background: rgba(74, 222, 128, 0.2);
+            background: rgba(74, 158, 255, 0.15);
             color: var(--good);
+            border-color: rgba(74, 158, 255, 0.3);
         }
 
         .team-btn.evil-btn {
-            background: rgba(248, 113, 113, 0.2);
+            background: rgba(196, 30, 58, 0.15);
             color: var(--evil);
+            border-color: rgba(196, 30, 58, 0.3);
         }
 
         .team-btn.active {
             background: var(--good);
-            color: #1a1a2e;
+            color: #0a0a0a;
+            border-color: var(--good);
         }
 
         .team-btn.evil-btn.active {
             background: var(--evil);
+            border-color: var(--evil);
         }
 
         .player-notes {
             width: 100%;
-            padding: 8px;
-            border: none;
+            padding: 10px;
+            border: 1px solid var(--gold-dark);
             border-radius: 6px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(30, 20, 20, 0.9);
             color: var(--text);
-            font-size: 0.9rem;
+            font-family: 'Crimson Text', serif;
+            font-size: 0.95rem;
             resize: none;
             min-height: 60px;
         }
 
         .player-notes::placeholder {
             color: var(--text-muted);
+            font-style: italic;
         }
 
         .section {
             background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
             border-radius: 12px;
-            padding: 16px;
+            padding: 20px;
             margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         .section h2 {
-            margin: 0 0 12px 0;
-            font-size: 1.1rem;
-            color: var(--accent);
+            margin: 0 0 16px 0;
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--gold-dark);
+            padding-bottom: 8px;
         }
 
         .nomination-form {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .nomination-form select {
             flex: 1;
-            min-width: 120px;
-            padding: 10px;
-            border: none;
+            min-width: 130px;
+            padding: 12px;
+            border: 1px solid var(--gold-dark);
             border-radius: 6px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(30, 20, 20, 0.9);
             color: var(--text);
-            font-size: 0.9rem;
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
         }
 
         .nomination-form button {
-            padding: 10px 16px;
-            background: var(--accent);
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
             color: white;
-            border: none;
+            border: 2px solid var(--accent-light);
             border-radius: 6px;
+            font-family: 'Cinzel', serif;
             font-weight: bold;
             cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .nomination-form button:hover {
+            box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
         }
 
         .history-list {
@@ -301,97 +532,120 @@
         }
 
         .history-item {
-            padding: 8px;
-            background: rgba(255,255,255,0.05);
+            padding: 10px 12px;
+            background: rgba(30, 20, 20, 0.6);
             border-radius: 6px;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            border-left: 3px solid var(--gold-dark);
         }
 
         .history-item.execution {
-            border-left: 3px solid var(--accent);
+            border-left-color: var(--accent);
+            background: rgba(139, 0, 0, 0.15);
         }
 
         .history-item .day-label {
-            color: var(--accent);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
             font-weight: bold;
         }
 
         .vote-controls {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .vote-btn {
             flex: 1;
-            padding: 10px;
-            border: none;
+            padding: 12px;
+            border: 2px solid;
             border-radius: 6px;
+            font-family: 'Cinzel', serif;
             font-weight: bold;
             cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s;
         }
 
         .vote-btn.yes {
-            background: var(--good);
-            color: #1a1a2e;
+            background: linear-gradient(135deg, #166534, #14532d);
+            border-color: #22c55e;
+            color: #86efac;
         }
 
-        .vote-btn.no {
-            background: var(--dead);
-            color: var(--text);
+        .vote-btn.yes:hover {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
         }
 
         .current-nomination {
-            padding: 12px;
-            background: rgba(233, 69, 96, 0.2);
+            padding: 16px;
+            background: rgba(139, 0, 0, 0.2);
+            border: 2px solid var(--accent);
             border-radius: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .current-nomination h3 {
-            margin: 0 0 8px 0;
+            margin: 0 0 10px 0;
+            font-family: 'Cinzel', serif;
             color: var(--accent-light);
+            font-size: 1.1rem;
         }
 
         .vote-count {
-            font-size: 1.2rem;
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
             font-weight: bold;
+            color: var(--gold);
         }
 
         .actions {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .action-btn {
-            padding: 10px 16px;
-            border: none;
+            padding: 12px 20px;
+            border: 2px solid;
             border-radius: 6px;
+            font-family: 'Cinzel', serif;
             font-size: 0.9rem;
             cursor: pointer;
             font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
         }
 
         .action-btn.execute {
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), #5a0000);
+            border-color: var(--accent-light);
             color: white;
         }
 
+        .action-btn.execute:hover {
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.7);
+        }
+
         .action-btn.cancel {
-            background: var(--dead);
+            background: rgba(60, 60, 60, 0.5);
+            border-color: var(--dead);
             color: var(--text);
         }
 
         .stats {
             display: flex;
             justify-content: center;
-            gap: 24px;
-            padding: 12px;
+            gap: 40px;
+            padding: 16px;
             background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
             border-radius: 12px;
             margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         .stat {
@@ -399,78 +653,161 @@
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
             font-weight: bold;
         }
 
         .stat-label {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .stat.alive .stat-value { color: var(--good); }
-        .stat.dead .stat-value { color: var(--dead); }
+        .stat.dead .stat-value { color: var(--accent); }
 
         .reset-btn {
             width: 100%;
-            padding: 14px;
-            background: rgba(233, 69, 96, 0.2);
+            padding: 16px;
+            background: transparent;
             color: var(--accent);
             border: 2px solid var(--accent);
             border-radius: 8px;
+            font-family: 'Cinzel', serif;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 16px;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: rgba(139, 0, 0, 0.2);
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
+        }
+
+        /* Decorative blood splatter */
+        .blood-splatter {
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .blood-splatter-1 {
+            top: 20%;
+            left: 5%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(ellipse at center, rgba(139, 0, 0, 0.3) 0%, transparent 70%);
+            filter: blur(2px);
+        }
+
+        .blood-splatter-2 {
+            bottom: 30%;
+            right: 3%;
+            width: 80px;
+            height: 120px;
+            background: radial-gradient(ellipse at center, rgba(139, 0, 0, 0.25) 0%, transparent 70%);
+            filter: blur(3px);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold-dark);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav a {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Blood on the Clocktower</h1>
+    <div class="blood-splatter blood-splatter-1"></div>
+    <div class="blood-splatter blood-splatter-2"></div>
 
-    <div class="phase-bar">
-        <button class="phase-btn day active" onclick="setPhase('day')">Day</button>
-        <div class="day-counter">Day <span id="dayNum">1</span></div>
-        <button class="phase-btn night" onclick="setPhase('night')">Night</button>
-    </div>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html" class="active">Game Tracker</a>
+            <a href="guide.html">Storyteller Guide</a>
+        </nav>
 
-    <div class="stats">
-        <div class="stat alive">
-            <div class="stat-value" id="aliveCount">0</div>
-            <div class="stat-label">Alive</div>
-        </div>
-        <div class="stat dead">
-            <div class="stat-value" id="deadCount">0</div>
-            <div class="stat-label">Dead</div>
-        </div>
-    </div>
+        <div class="clock-icon"></div>
+        <h1>Blood on the Clocktower</h1>
+        <p class="subtitle">"In the village of Ravenswood Bluff, evil lurks in the shadows..."</p>
 
-    <div class="add-player">
-        <input type="text" id="playerName" placeholder="Enter player name..." onkeypress="if(event.key==='Enter')addPlayer()">
-        <button onclick="addPlayer()">Add</button>
-    </div>
-
-    <div class="players-grid" id="playersGrid"></div>
-
-    <div class="section">
-        <h2>Nominations</h2>
-        <div class="nomination-form">
-            <select id="nominator">
-                <option value="">Nominator...</option>
-            </select>
-            <select id="nominee">
-                <option value="">Nominee...</option>
-            </select>
-            <button onclick="nominate()">Nominate</button>
+        <div class="phase-bar">
+            <button class="phase-btn day active" onclick="setPhase('day')">Day</button>
+            <div class="day-counter">Day <span id="dayNum">1</span></div>
+            <button class="phase-btn night" onclick="setPhase('night')">Night</button>
         </div>
 
-        <div id="currentNomination"></div>
+        <div class="stats">
+            <div class="stat alive">
+                <div class="stat-value" id="aliveCount">0</div>
+                <div class="stat-label">Living</div>
+            </div>
+            <div class="stat dead">
+                <div class="stat-value" id="deadCount">0</div>
+                <div class="stat-label">Dead</div>
+            </div>
+        </div>
 
-        <h2>History</h2>
-        <div class="history-list" id="historyList"></div>
+        <div class="add-player">
+            <input type="text" id="playerName" placeholder="Enter a villager's name..." onkeypress="if(event.key==='Enter')addPlayer()">
+            <button onclick="addPlayer()">Add</button>
+        </div>
+
+        <div class="players-grid" id="playersGrid"></div>
+
+        <div class="section">
+            <h2>Nominations</h2>
+            <div class="nomination-form">
+                <select id="nominator">
+                    <option value="">Nominator...</option>
+                </select>
+                <select id="nominee">
+                    <option value="">Nominee...</option>
+                </select>
+                <button onclick="nominate()">Nominate</button>
+            </div>
+
+            <div id="currentNomination"></div>
+
+            <h2>Chronicle of Events</h2>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <button class="reset-btn" onclick="resetGame()">Begin New Game</button>
     </div>
-
-    <button class="reset-btn" onclick="resetGame()">Reset Game</button>
 
     <script>
         const ROLES = [
@@ -630,7 +967,7 @@
         }
 
         function resetGame() {
-            if (confirm('Are you sure you want to reset the entire game?')) {
+            if (confirm('Are you sure you want to begin a new game? All current data will be lost.')) {
                 gameState = {
                     phase: 'day',
                     dayNum: 1,
@@ -682,7 +1019,7 @@
                             <button class="team-btn evil-btn ${p.team === 'evil' ? 'active' : ''}" onclick="setTeam(${p.id}, 'evil')">Evil</button>
                         </div>
                     </div>
-                    <textarea class="player-notes" placeholder="Notes & suspicions..." onchange="setNotes(${p.id}, this.value)">${p.notes}</textarea>
+                    <textarea class="player-notes" placeholder="Notes, claims & suspicions..." onchange="setNotes(${p.id}, this.value)">${p.notes}</textarea>
                 </div>
             `).join('');
 
@@ -703,14 +1040,14 @@
                 const nom = gameState.currentNomination;
                 nomDiv.innerHTML = `
                     <div class="current-nomination">
-                        <h3>${nom.nominator} nominated ${nom.nominee}</h3>
+                        <h3>${nom.nominator} nominates ${nom.nominee} for execution</h3>
                         <div class="vote-count">Votes: ${nom.votes}</div>
                         <div class="vote-controls">
                             <button class="vote-btn yes" onclick="vote(true)">+1 Vote</button>
                         </div>
                         <div class="actions" style="margin-top: 12px;">
                             <button class="action-btn execute" onclick="execute()">Execute</button>
-                            <button class="action-btn cancel" onclick="cancelNomination()">No Execution</button>
+                            <button class="action-btn cancel" onclick="cancelNomination()">Spare Them</button>
                         </div>
                     </div>
                 `;
@@ -723,7 +1060,7 @@
                 <div class="history-item ${h.type}">
                     <span class="day-label">Day ${h.day}:</span> ${h.text}
                 </div>
-            `).join('') || '<div style="color: var(--text-muted); text-align: center;">No history yet</div>';
+            `).join('') || '<div style="color: var(--text-muted); text-align: center; font-style: italic;">No events have been recorded...</div>';
         }
 
         loadState();
