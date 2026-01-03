@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Grimoire - Blood on the Clocktower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-dark: #0d0d0d;
+            --bg-card: rgba(20, 15, 15, 0.95);
+            --accent: #8b0000;
+            --accent-light: #c41e3a;
+            --gold: #d4af37;
+            --gold-dark: #996515;
+            --text: #e8e4d9;
+            --text-muted: #888;
+            --good: #4a9eff;
+            --evil: #c41e3a;
+            --dead: #444;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 60px 100px at 50% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(139, 0, 0, 0.3), rgba(20, 15, 15, 0.9));
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+        }
+
+        .nav a {
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover, .nav a.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+        }
+
+        h1 {
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 2rem;
+            margin: 0 0 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .grimoire-layout {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Circle seating area */
+        .circle-area {
+            flex: 1;
+            min-width: 500px;
+            aspect-ratio: 1;
+            position: relative;
+            background: radial-gradient(circle, rgba(30, 20, 20, 0.8) 0%, rgba(10, 5, 5, 0.9) 100%);
+            border: 3px solid var(--gold-dark);
+            border-radius: 50%;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        .seat {
+            position: absolute;
+            width: 90px;
+            height: 110px;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .seat:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .seat-number {
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .seat-token {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--gold-dark);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 4px;
+            font-family: 'Cinzel', serif;
+            color: var(--text);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .seat-token.has-role {
+            border-width: 4px;
+        }
+
+        .seat-token.good {
+            border-color: var(--good);
+            box-shadow: 0 0 15px rgba(74, 158, 255, 0.4);
+        }
+
+        .seat-token.evil {
+            border-color: var(--evil);
+            box-shadow: 0 0 15px rgba(196, 30, 58, 0.4);
+        }
+
+        .seat-token.dead {
+            opacity: 0.5;
+            filter: grayscale(50%);
+        }
+
+        .seat-token.dead::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: var(--accent);
+            transform: rotate(-45deg);
+        }
+
+        .seat-token.drag-over {
+            border-color: var(--gold);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
+            transform: scale(1.1);
+        }
+
+        .seat-player-name {
+            font-size: 0.75rem;
+            color: var(--gold);
+            margin-top: 4px;
+            text-align: center;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .seat-player-name.dead {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* Role tokens panel */
+        .tokens-panel {
+            width: 280px;
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .tokens-panel h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.2rem;
+            margin: 0 0 16px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--gold-dark);
+            padding-bottom: 8px;
+        }
+
+        .token-category {
+            margin-bottom: 16px;
+        }
+
+        .token-category h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .token-category.townsfolk h3 { color: var(--good); }
+        .token-category.outsiders h3 { color: #9ca3af; }
+        .token-category.minions h3 { color: var(--evil); }
+        .token-category.demons h3 { color: #7f1d1d; }
+
+        .token-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .role-token {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: 3px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            text-align: center;
+            padding: 4px;
+            font-family: 'Cinzel', serif;
+            cursor: grab;
+            transition: all 0.2s;
+            background: var(--bg-dark);
+        }
+
+        .role-token:active {
+            cursor: grabbing;
+        }
+
+        .role-token:hover {
+            transform: scale(1.1);
+        }
+
+        .role-token.townsfolk {
+            border-color: var(--good);
+            color: var(--good);
+        }
+
+        .role-token.outsider {
+            border-color: #9ca3af;
+            color: #9ca3af;
+        }
+
+        .role-token.minion {
+            border-color: var(--evil);
+            color: var(--evil);
+        }
+
+        .role-token.demon {
+            border-color: #7f1d1d;
+            color: #dc2626;
+            background: linear-gradient(135deg, #1a0505, #2d0a0a);
+        }
+
+        .role-token.dragging {
+            opacity: 0.5;
+        }
+
+        .role-token.used {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .control-btn.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+        }
+
+        .player-count-select {
+            padding: 10px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text);
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .grimoire-layout {
+                flex-direction: column;
+            }
+
+            .circle-area {
+                min-width: 320px;
+                max-width: 400px;
+            }
+
+            .tokens-panel {
+                width: 100%;
+                max-height: none;
+            }
+
+            .seat-token {
+                width: 50px;
+                height: 50px;
+                font-size: 0.5rem;
+            }
+
+            .seat {
+                width: 60px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <a href="index.html">Game Tracker</a>
+            <a href="grimoire.html" class="active">Grimoire</a>
+            <a href="guide.html">Storyteller Guide</a>
+        </nav>
+
+        <h1>The Grimoire</h1>
+
+        <div class="controls">
+            <label style="color: var(--text); display: flex; align-items: center; gap: 8px;">
+                <span style="font-family: 'Cinzel', serif;">Players:</span>
+                <select class="player-count-select" id="playerCount" onchange="updateSeats()">
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13" selected>13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                </select>
+            </label>
+            <button class="control-btn" onclick="syncFromTracker()">Sync from Tracker</button>
+            <button class="control-btn" onclick="clearGrimoire()">Clear All</button>
+        </div>
+
+        <div class="grimoire-layout">
+            <div class="circle-area" id="circleArea">
+                <!-- Seats will be generated here -->
+            </div>
+
+            <div class="tokens-panel">
+                <h2>Role Tokens</h2>
+
+                <div class="token-category townsfolk">
+                    <h3>Townsfolk</h3>
+                    <div class="token-grid" id="townsfolkTokens"></div>
+                </div>
+
+                <div class="token-category outsiders">
+                    <h3>Outsiders</h3>
+                    <div class="token-grid" id="outsiderTokens"></div>
+                </div>
+
+                <div class="token-category minions">
+                    <h3>Minions</h3>
+                    <div class="token-grid" id="minionTokens"></div>
+                </div>
+
+                <div class="token-category demons">
+                    <h3>Demons</h3>
+                    <div class="token-grid" id="demonTokens"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ROLES = {
+            townsfolk: [
+                "Washerwoman", "Librarian", "Investigator", "Chef", "Empath",
+                "Fortune Teller", "Undertaker", "Monk", "Ravenkeeper", "Virgin",
+                "Slayer", "Soldier", "Mayor"
+            ],
+            outsiders: ["Butler", "Drunk", "Recluse", "Saint"],
+            minions: ["Poisoner", "Spy", "Scarlet Woman", "Baron"],
+            demons: ["Imp"]
+        };
+
+        let grimoireState = {
+            playerCount: 13,
+            seats: [] // { seatNum, role, playerName, team, alive }
+        };
+
+        let draggedRole = null;
+
+        function loadState() {
+            const saved = localStorage.getItem('boctGrimoireState');
+            if (saved) {
+                grimoireState = JSON.parse(saved);
+                document.getElementById('playerCount').value = grimoireState.playerCount;
+            }
+            initSeats();
+            renderTokens();
+            renderSeats();
+        }
+
+        function saveState() {
+            localStorage.setItem('boctGrimoireState', JSON.stringify(grimoireState));
+        }
+
+        function initSeats() {
+            if (!grimoireState.seats || grimoireState.seats.length !== grimoireState.playerCount) {
+                grimoireState.seats = [];
+                for (let i = 0; i < grimoireState.playerCount; i++) {
+                    grimoireState.seats.push({
+                        seatNum: i + 1,
+                        role: null,
+                        playerName: null,
+                        team: null,
+                        alive: true
+                    });
+                }
+            }
+        }
+
+        function updateSeats() {
+            const newCount = parseInt(document.getElementById('playerCount').value);
+            const oldSeats = grimoireState.seats;
+            grimoireState.playerCount = newCount;
+            grimoireState.seats = [];
+
+            for (let i = 0; i < newCount; i++) {
+                if (oldSeats[i]) {
+                    grimoireState.seats.push(oldSeats[i]);
+                } else {
+                    grimoireState.seats.push({
+                        seatNum: i + 1,
+                        role: null,
+                        playerName: null,
+                        team: null,
+                        alive: true
+                    });
+                }
+            }
+
+            saveState();
+            renderSeats();
+            renderTokens();
+        }
+
+        function renderSeats() {
+            const area = document.getElementById('circleArea');
+            const rect = area.getBoundingClientRect();
+            const centerX = 50;
+            const centerY = 50;
+            const radius = 40;
+
+            area.innerHTML = '';
+
+            grimoireState.seats.forEach((seat, i) => {
+                const angle = (i / grimoireState.playerCount) * 2 * Math.PI - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                const seatEl = document.createElement('div');
+                seatEl.className = 'seat';
+                seatEl.style.left = x + '%';
+                seatEl.style.top = y + '%';
+                seatEl.dataset.seat = i;
+
+                const tokenClasses = ['seat-token'];
+                if (seat.role) tokenClasses.push('has-role');
+                if (seat.team) tokenClasses.push(seat.team);
+                if (!seat.alive) tokenClasses.push('dead');
+
+                seatEl.innerHTML = `
+                    <div class="seat-number">Seat ${seat.seatNum}</div>
+                    <div class="${tokenClasses.join(' ')}"
+                         ondragover="handleDragOver(event)"
+                         ondrop="handleDrop(event, ${i})"
+                         ondragleave="handleDragLeave(event)"
+                         onclick="toggleSeatDeath(${i})">
+                        ${seat.role || '?'}
+                    </div>
+                    <div class="seat-player-name ${seat.alive ? '' : 'dead'}">${seat.playerName || ''}</div>
+                `;
+
+                area.appendChild(seatEl);
+            });
+        }
+
+        function renderTokens() {
+            const usedRoles = new Set(grimoireState.seats.filter(s => s.role).map(s => s.role));
+
+            ['townsfolk', 'outsiders', 'minions', 'demons'].forEach(category => {
+                const container = document.getElementById(category === 'outsiders' ? 'outsiderTokens' :
+                                  category === 'minions' ? 'minionTokens' :
+                                  category === 'demons' ? 'demonTokens' : 'townsfolkTokens');
+
+                container.innerHTML = ROLES[category].map(role => {
+                    const tokenClass = category === 'outsiders' ? 'outsider' :
+                                      category === 'minions' ? 'minion' :
+                                      category === 'demons' ? 'demon' : 'townsfolk';
+                    const usedClass = usedRoles.has(role) ? 'used' : '';
+
+                    return `
+                        <div class="role-token ${tokenClass} ${usedClass}"
+                             draggable="true"
+                             ondragstart="handleDragStart(event, '${role}', '${category}')"
+                             ondragend="handleDragEnd(event)">
+                            ${role}
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleDragStart(e, role, category) {
+            draggedRole = { role, team: (category === 'minions' || category === 'demons') ? 'evil' : 'good' };
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedRole = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, seatIndex) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            if (draggedRole) {
+                // Remove role from old seat if it was placed elsewhere
+                grimoireState.seats.forEach(s => {
+                    if (s.role === draggedRole.role) {
+                        s.role = null;
+                        s.team = null;
+                    }
+                });
+
+                grimoireState.seats[seatIndex].role = draggedRole.role;
+                grimoireState.seats[seatIndex].team = draggedRole.team;
+                saveState();
+                renderSeats();
+                renderTokens();
+            }
+        }
+
+        function toggleSeatDeath(seatIndex) {
+            grimoireState.seats[seatIndex].alive = !grimoireState.seats[seatIndex].alive;
+            saveState();
+            renderSeats();
+        }
+
+        function syncFromTracker() {
+            const trackerState = localStorage.getItem('boctStorytellerState');
+            if (!trackerState) {
+                alert('No tracker data found. Open the Game Tracker first.');
+                return;
+            }
+
+            const tracker = JSON.parse(trackerState);
+            if (!tracker.players || tracker.players.length === 0) {
+                alert('No players in the tracker yet.');
+                return;
+            }
+
+            // Update player count to match
+            grimoireState.playerCount = Math.max(tracker.players.length, 5);
+            document.getElementById('playerCount').value = grimoireState.playerCount;
+
+            // Reset seats
+            grimoireState.seats = [];
+            for (let i = 0; i < grimoireState.playerCount; i++) {
+                const player = tracker.players[i];
+                grimoireState.seats.push({
+                    seatNum: i + 1,
+                    role: player ? player.role || null : null,
+                    playerName: player ? player.name : null,
+                    team: player ? player.team || null : null,
+                    alive: player ? player.alive : true
+                });
+            }
+
+            saveState();
+            renderSeats();
+            renderTokens();
+        }
+
+        function clearGrimoire() {
+            if (confirm('Clear all roles and player assignments?')) {
+                grimoireState.seats.forEach(s => {
+                    s.role = null;
+                    s.team = null;
+                    s.playerName = null;
+                    s.alive = true;
+                });
+                saveState();
+                renderSeats();
+                renderTokens();
+            }
+        }
+
+        // Auto-sync with tracker periodically
+        function autoSync() {
+            const trackerState = localStorage.getItem('boctStorytellerState');
+            if (trackerState) {
+                const tracker = JSON.parse(trackerState);
+                if (tracker.players) {
+                    // Update alive/dead status for matching players
+                    tracker.players.forEach((player, i) => {
+                        if (grimoireState.seats[i]) {
+                            // Update if player name matches or if we have a name set
+                            if (grimoireState.seats[i].playerName === player.name ||
+                                (!grimoireState.seats[i].playerName && player.name)) {
+                                grimoireState.seats[i].alive = player.alive;
+                                grimoireState.seats[i].playerName = player.name;
+                                if (player.role && !grimoireState.seats[i].role) {
+                                    grimoireState.seats[i].role = player.role;
+                                    grimoireState.seats[i].team = player.team;
+                                }
+                            }
+                        }
+                    });
+                    saveState();
+                    renderSeats();
+                    renderTokens();
+                }
+            }
+        }
+
+        // Initialize
+        loadState();
+
+        // Auto-sync every 3 seconds
+        setInterval(autoSync, 3000);
+    </script>
+</body>
+</html>

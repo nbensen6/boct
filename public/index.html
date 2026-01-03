@@ -898,6 +898,7 @@
     <div class="container">
         <nav class="nav">
             <a href="index.html" class="active">Game Tracker</a>
+            <a href="grimoire.html">Grimoire</a>
             <a href="guide.html">Storyteller Guide</a>
         </nav>
 
@@ -1320,7 +1321,7 @@
                             <button class="team-btn evil-btn ${p.team === 'evil' ? 'active' : ''}" onclick="setTeam('${p.id}', 'evil')">Evil</button>
                         </div>
                     </div>
-                    <textarea class="player-notes" placeholder="Notes, claims & suspicions..." onchange="setNotes('${p.id}', this.value)">${p.notes || ''}</textarea>
+                    <textarea class="player-notes" placeholder="Notes, claims & suspicions..." oninput="setNotes('${p.id}', this.value)">${p.notes || ''}</textarea>
                 </div>
             `).join('');
 
