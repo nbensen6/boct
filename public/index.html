@@ -391,6 +391,29 @@
             font-weight: bold;
             color: var(--gold);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .day-nav-btn {
+            background: rgba(139, 0, 0, 0.3);
+            border: 2px solid var(--gold-dark);
+            color: var(--gold);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-nav-btn:hover {
+            background: rgba(139, 0, 0, 0.5);
+            border-color: var(--gold);
         }
 
         /* Stats */
@@ -899,6 +922,7 @@
         <nav class="nav">
             <a href="index.html" class="active">Game Tracker</a>
             <a href="grimoire.html">Grimoire</a>
+            <a href="night.html">Night Order</a>
             <a href="guide.html">Storyteller Guide</a>
         </nav>
 
@@ -940,7 +964,11 @@
 
         <div class="phase-bar">
             <button class="phase-btn day active" onclick="setPhase('day')">Day</button>
-            <div class="day-counter">Day <span id="dayNum">1</span></div>
+            <div class="day-counter">
+                <button class="day-nav-btn" onclick="changeDay(-1)" title="Previous Day">&larr;</button>
+                <span>Day <span id="dayNum">1</span></span>
+                <button class="day-nav-btn" onclick="changeDay(1)" title="Next Day">&rarr;</button>
+            </div>
             <button class="phase-btn night" onclick="setPhase('night')">Night</button>
         </div>
 
@@ -1118,6 +1146,16 @@
             socket.emit('update-phase', { phase, dayNum: gameState.dayNum });
             saveState();
             render();
+        }
+
+        function changeDay(delta) {
+            const newDay = gameState.dayNum + delta;
+            if (newDay >= 1) {
+                gameState.dayNum = newDay;
+                socket.emit('update-phase', { phase: gameState.phase, dayNum: gameState.dayNum });
+                saveState();
+                render();
+            }
         }
 
         function addManualPlayer() {
