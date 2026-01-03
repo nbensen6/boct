@@ -163,100 +163,179 @@
             transform-origin: bottom center;
         }
 
-        /* QR Code Section */
-        .qr-section {
+        /* Join Info Bar */
+        .join-bar {
             background: var(--bg-card);
             border: 2px solid var(--gold-dark);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px 20px;
             margin-bottom: 20px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
-        .qr-section h2 {
-            font-family: 'Cinzel', serif;
-            color: var(--gold);
-            margin: 0 0 16px 0;
-            font-size: 1.3rem;
-        }
-
-        .qr-container {
+        .join-info {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
-        }
-
-        #qr-code {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        #qr-code canvas {
-            display: block;
         }
 
         .game-code-display {
             text-align: center;
         }
 
-        .game-code {
-            font-family: 'Cinzel', serif;
-            font-size: 3rem;
-            color: var(--gold);
-            letter-spacing: 8px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            margin-bottom: 10px;
-        }
-
         .game-code-label {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
-        .join-url {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            word-break: break-all;
-            margin-top: 10px;
-        }
-
-        .start-game-btn {
-            padding: 14px 30px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            color: white;
-            border: 2px solid var(--accent-light);
-            border-radius: 8px;
+        .game-code {
             font-family: 'Cinzel', serif;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-
-        .start-game-btn:hover {
-            box-shadow: 0 0 25px rgba(196, 30, 58, 0.6);
-            transform: translateY(-2px);
+            font-size: 2rem;
+            color: var(--gold);
+            letter-spacing: 6px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
         .player-count {
-            margin-top: 15px;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            color: var(--text-muted);
         }
 
         .player-count span {
             color: var(--gold);
             font-weight: bold;
-            font-size: 1.3rem;
+        }
+
+        .join-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .show-qr-btn, .new-game-btn {
+            padding: 12px 20px;
+            border: 2px solid;
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .show-qr-btn {
+            background: linear-gradient(135deg, #166534, #14532d);
+            border-color: #22c55e;
+            color: #86efac;
+        }
+
+        .show-qr-btn:hover {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+
+        .new-game-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-color: var(--accent-light);
+            color: white;
+        }
+
+        .new-game-btn:hover {
+            box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+        }
+
+        /* QR Modal */
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .qr-modal.active {
+            display: flex;
+        }
+
+        .qr-modal-content {
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .qr-modal h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .qr-modal .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .qr-box {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            display: inline-block;
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+        }
+
+        .qr-box img {
+            display: block;
+            width: 250px;
+            height: 250px;
+        }
+
+        .qr-modal .game-code {
+            font-size: 3.5rem;
+            letter-spacing: 12px;
+            margin-bottom: 10px;
+        }
+
+        .qr-modal .join-url {
+            color: var(--text-muted);
+            font-size: 1rem;
+            word-break: break-all;
+            margin-bottom: 30px;
+        }
+
+        .close-qr-btn {
+            padding: 14px 40px;
+            background: transparent;
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .close-qr-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
         }
 
         /* Game Controls */
@@ -827,21 +906,36 @@
         <h1>Blood on the Clocktower</h1>
         <p class="subtitle">"In the village of Ravenswood Bluff, evil lurks in the shadows..."</p>
 
-        <!-- QR Code Section - shown when game is active -->
-        <div class="qr-section" id="qr-section">
-            <h2>Players: Scan to Join</h2>
-            <div class="qr-container">
-                <div id="qr-code"></div>
+        <!-- Join Info Bar -->
+        <div class="join-bar">
+            <div class="join-info">
                 <div class="game-code-display">
-                    <div class="game-code" id="game-code-display">----</div>
                     <div class="game-code-label">Game Code</div>
-                    <div class="join-url" id="join-url"></div>
+                    <div class="game-code" id="game-code-display">----</div>
+                </div>
+                <div class="player-count">
+                    <span id="connected-count">0</span> players online
                 </div>
             </div>
-            <div class="player-count">
-                <span id="connected-count">0</span> players connected
+            <div class="join-buttons">
+                <button class="show-qr-btn" onclick="showQRModal()">Show QR Code</button>
+                <button class="new-game-btn" onclick="createNewGame()">New Game</button>
             </div>
-            <button class="start-game-btn" id="new-game-btn" onclick="createNewGame()">Start New Game</button>
+        </div>
+
+        <!-- QR Code Modal (fullscreen for easy scanning) -->
+        <div class="qr-modal" id="qr-modal">
+            <div class="qr-modal-content">
+                <h2>Scan to Join</h2>
+                <p class="subtitle">Or go to the URL below and enter the code</p>
+                <div class="qr-box">
+                    <img id="qr-code-img" alt="QR Code" />
+                </div>
+                <div class="game-code" id="modal-game-code">----</div>
+                <div class="game-code-label">Game Code</div>
+                <div class="join-url" id="join-url"></div>
+                <button class="close-qr-btn" onclick="hideQRModal()">Close</button>
+            </div>
         </div>
 
         <div class="phase-bar">
@@ -989,32 +1083,41 @@
 
         function generateQRCode() {
             const joinUrl = `${window.location.origin}/player.html?code=${gameState.code}`;
-            document.getElementById('game-code-display').textContent = gameState.code || '----';
-            document.getElementById('join-url').textContent = joinUrl;
+            const displayCode = gameState.code || '----';
 
-            const qrContainer = document.getElementById('qr-code');
-            qrContainer.innerHTML = '';
+            // Update all code displays
+            document.getElementById('game-code-display').textContent = displayCode;
+            document.getElementById('modal-game-code').textContent = displayCode;
+            document.getElementById('join-url').textContent = `${window.location.origin}/player.html`;
 
             if (gameState.code) {
-                // Create canvas element first
-                const canvas = document.createElement('canvas');
-                qrContainer.appendChild(canvas);
-
-                QRCode.toCanvas(canvas, joinUrl, {
-                    width: 180,
-                    margin: 1,
+                // Use toDataURL for image-based QR code (more reliable)
+                QRCode.toDataURL(joinUrl, {
+                    width: 250,
+                    margin: 2,
                     color: {
-                        dark: '#1a0a0a',
+                        dark: '#000000',
                         light: '#ffffff'
                     }
-                }, function(error) {
+                }, function(error, url) {
+                    const qrImg = document.getElementById('qr-code-img');
                     if (error) {
                         console.error('QR Code error:', error);
-                        // Fallback: show just the URL more prominently
-                        qrContainer.innerHTML = '<div style="padding: 20px; background: #fff; color: #000; border-radius: 8px; font-size: 14px;">Scan not available - use code above</div>';
+                        qrImg.style.display = 'none';
+                    } else {
+                        qrImg.src = url;
+                        qrImg.style.display = 'block';
                     }
                 });
             }
+        }
+
+        function showQRModal() {
+            document.getElementById('qr-modal').classList.add('active');
+        }
+
+        function hideQRModal() {
+            document.getElementById('qr-modal').classList.remove('active');
         }
 
         function setPhase(phase) {
