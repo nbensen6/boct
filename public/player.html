@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Join Game - Blood on the Clocktower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-dark: #0d0d0d;
+            --bg-card: rgba(20, 15, 15, 0.95);
+            --accent: #8b0000;
+            --accent-light: #c41e3a;
+            --gold: #d4af37;
+            --gold-dark: #996515;
+            --text: #e8e4d9;
+            --text-muted: #888;
+            --good: #4a9eff;
+            --evil: #c41e3a;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 60px 100px at 50% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 300px 300px at 85% 15%, rgba(200, 200, 180, 0.1) 0%, transparent 60%),
+                linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .clock-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, rgba(20, 15, 15, 0.9) 0%, rgba(10, 5, 5, 1) 100%);
+            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5), inset 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .clock-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 28px;
+            background: var(--gold);
+            transform: translate(-50%, -100%) rotate(30deg);
+            transform-origin: bottom center;
+        }
+
+        .clock-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 18px;
+            background: var(--accent-light);
+            transform: translate(-50%, -100%) rotate(-60deg);
+            transform-origin: bottom center;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.8rem;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        /* Join Form */
+        #join-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group {
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: rgba(30, 20, 20, 0.9);
+            color: var(--text);
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        #game-code {
+            text-transform: uppercase;
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            letter-spacing: 4px;
+        }
+
+        .join-btn {
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border: 2px solid var(--accent-light);
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .join-btn:hover {
+            box-shadow: 0 0 25px rgba(196, 30, 58, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .join-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error {
+            color: var(--accent-light);
+            background: rgba(139, 0, 0, 0.2);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Waiting Screen */
+        #waiting-screen {
+            display: none;
+        }
+
+        .player-name-display {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .waiting-message {
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: var(--gold);
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Role Display */
+        #role-screen {
+            display: none;
+        }
+
+        .role-card {
+            background: rgba(30, 20, 20, 0.9);
+            border: 3px solid var(--gold-dark);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .role-card.good {
+            border-color: var(--good);
+            box-shadow: 0 0 30px rgba(74, 158, 255, 0.3);
+        }
+
+        .role-card.evil {
+            border-color: var(--evil);
+            box-shadow: 0 0 30px rgba(196, 30, 58, 0.3);
+        }
+
+        .role-type {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .role-type.good { color: var(--good); }
+        .role-type.evil { color: var(--evil); }
+
+        .role-name {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .role-ability {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .role-ability strong {
+            color: var(--gold);
+            display: block;
+            margin-bottom: 8px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .role-tips {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .role-tips strong {
+            color: var(--gold);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.alive {
+            background: rgba(74, 158, 255, 0.2);
+            border: 1px solid var(--good);
+            color: var(--good);
+        }
+
+        .status-badge.dead {
+            background: rgba(139, 0, 0, 0.3);
+            border: 1px solid var(--accent);
+            color: var(--accent-light);
+        }
+
+        .phase-display {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(30, 20, 20, 0.8);
+            border-radius: 8px;
+        }
+
+        .phase-display.day {
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+        }
+
+        .phase-display.night {
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+
+        /* Messages */
+        .storyteller-message {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .storyteller-message::before {
+            content: 'Storyteller: ';
+            color: var(--gold);
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* Keep secret reminder */
+        .secret-reminder {
+            background: rgba(139, 0, 0, 0.2);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--accent-light);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Connection status */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: 'Cinzel', serif;
+        }
+
+        .connection-status.connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status connected" id="connectionStatus">Connected</div>
+
+    <div class="container">
+        <!-- Join Form -->
+        <div class="card" id="join-form">
+            <div class="clock-icon"></div>
+            <h1>Blood on the Clocktower</h1>
+            <p class="subtitle">Enter the game code to join</p>
+
+            <div class="input-group">
+                <label for="game-code">Game Code</label>
+                <input type="text" id="game-code" maxlength="4" placeholder="XXXX" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label for="player-name">Your Name</label>
+                <input type="text" id="player-name" placeholder="Enter your name" autocomplete="off">
+            </div>
+
+            <button class="join-btn" id="join-btn" onclick="joinGame()">Enter the Village</button>
+
+            <div class="error" id="error-message"></div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div class="card" id="waiting-screen">
+            <div class="clock-icon"></div>
+            <h1>Welcome, Villager</h1>
+            <div class="player-name-display" id="display-name"></div>
+            <p class="waiting-message">
+                Waiting for the Storyteller to assign your role
+                <span class="pulse-dot"></span>
+            </p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Keep this screen open. Your role will appear here when the game begins.
+            </p>
+        </div>
+
+        <!-- Role Screen -->
+        <div class="card" id="role-screen">
+            <h1>Your Role</h1>
+            <div class="player-name-display" id="role-player-name"></div>
+
+            <div class="role-card" id="role-card">
+                <div class="role-type" id="role-type">Townsfolk</div>
+                <div class="role-name" id="role-name">Loading...</div>
+                <div class="role-ability">
+                    <strong>Ability</strong>
+                    <span id="role-ability">Loading...</span>
+                </div>
+                <div class="role-tips">
+                    <strong>Tips:</strong> <span id="role-tips">Loading...</span>
+                </div>
+            </div>
+
+            <div class="status-badge alive" id="status-badge">Alive</div>
+
+            <div class="phase-display day" id="phase-display">Day 1</div>
+
+            <div class="secret-reminder">
+                Keep your role SECRET! Do not show this screen to other players.
+            </div>
+
+            <div class="storyteller-message hidden" id="storyteller-message"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let playerData = null;
+        let gameCode = null;
+
+        // Check URL for game code
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeFromUrl = urlParams.get('code');
+        if (codeFromUrl) {
+            document.getElementById('game-code').value = codeFromUrl.toUpperCase();
+        }
+
+        // Check localStorage for reconnection
+        const savedGame = localStorage.getItem('boctPlayerGame');
+        if (savedGame) {
+            const saved = JSON.parse(savedGame);
+            // Try to reconnect
+            socket.emit('player-reconnect', { code: saved.code, name: saved.name }, (response) => {
+                if (response.success) {
+                    playerData = response.player;
+                    gameCode = saved.code;
+                    if (response.role) {
+                        showRoleScreen(response.role, response.roleInfo);
+                    } else {
+                        showWaitingScreen(saved.name);
+                    }
+                } else {
+                    localStorage.removeItem('boctPlayerGame');
+                }
+            });
+        }
+
+        // Connection status
+        socket.on('connect', () => {
+            document.getElementById('connectionStatus').textContent = 'Connected';
+            document.getElementById('connectionStatus').className = 'connection-status connected';
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('connectionStatus').textContent = 'Reconnecting...';
+            document.getElementById('connectionStatus').className = 'connection-status disconnected';
+        });
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function joinGame() {
+            hideError();
+            const code = document.getElementById('game-code').value.trim().toUpperCase();
+            const name = document.getElementById('player-name').value.trim();
+
+            if (!code || code.length !== 4) {
+                showError('Please enter a valid 4-character game code.');
+                return;
+            }
+
+            if (!name || name.length < 1) {
+                showError('Please enter your name.');
+                return;
+            }
+
+            document.getElementById('join-btn').disabled = true;
+            document.getElementById('join-btn').textContent = 'Joining...';
+
+            socket.emit('join-game', { code, name }, (response) => {
+                document.getElementById('join-btn').disabled = false;
+                document.getElementById('join-btn').textContent = 'Enter the Village';
+
+                if (response.success) {
+                    playerData = response.player;
+                    gameCode = code;
+                    localStorage.setItem('boctPlayerGame', JSON.stringify({ code, name }));
+                    showWaitingScreen(name);
+                } else {
+                    showError(response.error);
+                }
+            });
+        }
+
+        function showWaitingScreen(name) {
+            document.getElementById('join-form').style.display = 'none';
+            document.getElementById('waiting-screen').style.display = 'block';
+            document.getElementById('display-name').textContent = name;
+        }
+
+        function showRoleScreen(role, roleInfo) {
+            document.getElementById('join-form').style.display = 'none';
+            document.getElementById('waiting-screen').style.display = 'none';
+            document.getElementById('role-screen').style.display = 'block';
+
+            document.getElementById('role-player-name').textContent = playerData.name;
+            document.getElementById('role-name').textContent = role;
+            document.getElementById('role-type').textContent = roleInfo.type;
+            document.getElementById('role-ability').textContent = roleInfo.ability;
+            document.getElementById('role-tips').textContent = roleInfo.tips;
+
+            const roleCard = document.getElementById('role-card');
+            roleCard.className = 'role-card ' + roleInfo.team;
+
+            const roleType = document.getElementById('role-type');
+            roleType.className = 'role-type ' + roleInfo.team;
+        }
+
+        // Socket events
+        socket.on('role-assigned', (data) => {
+            showRoleScreen(data.role, data.roleInfo);
+        });
+
+        socket.on('status-updated', (data) => {
+            const badge = document.getElementById('status-badge');
+            if (data.alive) {
+                badge.textContent = 'Alive';
+                badge.className = 'status-badge alive';
+            } else {
+                badge.textContent = 'Dead (You have 1 vote left)';
+                badge.className = 'status-badge dead';
+            }
+        });
+
+        socket.on('phase-changed', (data) => {
+            const phaseDisplay = document.getElementById('phase-display');
+            phaseDisplay.textContent = `${data.phase === 'day' ? 'Day' : 'Night'} ${data.dayNum}`;
+            phaseDisplay.className = 'phase-display ' + data.phase;
+        });
+
+        socket.on('storyteller-message', (message) => {
+            const msgEl = document.getElementById('storyteller-message');
+            msgEl.textContent = message;
+            msgEl.classList.remove('hidden');
+        });
+
+        socket.on('removed-from-game', () => {
+            localStorage.removeItem('boctPlayerGame');
+            alert('You have been removed from the game.');
+            location.reload();
+        });
+
+        socket.on('game-ended', () => {
+            localStorage.removeItem('boctPlayerGame');
+            alert('The game has ended. Thanks for playing!');
+            location.reload();
+        });
+
+        // Enter key to join
+        document.getElementById('player-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinGame();
+        });
+
+        document.getElementById('game-code').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('player-name').focus();
+        });
+
+        // Auto-uppercase game code
+        document.getElementById('game-code').addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>

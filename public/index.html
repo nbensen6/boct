@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -38,7 +39,6 @@
             position: relative;
         }
 
-        /* Gothic background with clocktower silhouette */
         body::before {
             content: '';
             position: fixed;
@@ -47,22 +47,17 @@
             right: 0;
             bottom: 0;
             background:
-                /* Blood drips from top */
                 radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
                 radial-gradient(ellipse 60px 100px at 30% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
                 radial-gradient(ellipse 70px 90px at 55% 0%, rgba(139, 0, 0, 0.35) 0%, transparent 70%),
                 radial-gradient(ellipse 50px 80px at 75% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
                 radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
-                /* Moon glow */
                 radial-gradient(ellipse 300px 300px at 85% 15%, rgba(200, 200, 180, 0.1) 0%, transparent 60%),
-                /* Fog at bottom */
                 linear-gradient(to top, rgba(50, 40, 40, 0.8) 0%, transparent 30%),
-                /* Base gradient */
                 linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
             z-index: -2;
         }
 
-        /* Clocktower silhouette */
         body::after {
             content: '';
             position: fixed;
@@ -70,11 +65,7 @@
             right: 5%;
             width: 200px;
             height: 400px;
-            background: linear-gradient(to top,
-                #0a0505 0%,
-                #0a0505 60%,
-                transparent 60%
-            );
+            background: linear-gradient(to top, #0a0505 0%, #0a0505 60%, transparent 60%);
             clip-path: polygon(
                 30% 100%, 30% 40%, 20% 40%, 20% 35%, 35% 35%, 35% 25%,
                 40% 25%, 40% 15%, 45% 15%, 45% 5%, 50% 0%, 55% 5%,
@@ -92,7 +83,6 @@
             position: relative;
         }
 
-        /* Navigation */
         .nav {
             display: flex;
             justify-content: center;
@@ -138,7 +128,6 @@
             font-size: 1.1rem;
         }
 
-        /* Clock decoration */
         .clock-icon {
             width: 60px;
             height: 60px;
@@ -174,6 +163,103 @@
             transform-origin: bottom center;
         }
 
+        /* QR Code Section */
+        .qr-section {
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .qr-section h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            margin: 0 0 16px 0;
+            font-size: 1.3rem;
+        }
+
+        .qr-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        #qr-code {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        #qr-code canvas {
+            display: block;
+        }
+
+        .game-code-display {
+            text-align: center;
+        }
+
+        .game-code {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            color: var(--gold);
+            letter-spacing: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        .game-code-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .join-url {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        .start-game-btn {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border: 2px solid var(--accent-light);
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .start-game-btn:hover {
+            box-shadow: 0 0 25px rgba(196, 30, 58, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .player-count {
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+
+        .player-count span {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        /* Game Controls */
         .phase-bar {
             display: flex;
             justify-content: center;
@@ -229,54 +315,41 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
-        .add-player {
+        /* Stats */
+        .stats {
             display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .add-player input {
-            flex: 1;
-            padding: 14px;
-            border: 2px solid var(--gold-dark);
-            border-radius: 8px;
+            justify-content: center;
+            gap: 40px;
+            padding: 16px;
             background: var(--bg-card);
-            color: var(--text);
-            font-family: 'Crimson Text', serif;
-            font-size: 1rem;
+            border: 2px solid var(--gold-dark);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
-        .add-player input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        .stat {
+            text-align: center;
         }
 
-        .add-player input::placeholder {
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        .add-player button {
-            padding: 14px 24px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            color: white;
-            border: 2px solid var(--accent-light);
-            border-radius: 8px;
+        .stat-value {
             font-family: 'Cinzel', serif;
-            font-size: 1rem;
+            font-size: 2rem;
             font-weight: bold;
-            cursor: pointer;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.3s;
         }
 
-        .add-player button:hover {
-            box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
-            transform: translateY(-2px);
-        }
+        .stat.alive .stat-value { color: var(--good); }
+        .stat.dead .stat-value { color: var(--accent); }
+        .stat.connected .stat-value { color: #22c55e; }
 
+        /* Players Grid */
         .players-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -292,6 +365,7 @@
             border-left-width: 5px;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: relative;
         }
 
         .player-card:hover {
@@ -320,23 +394,20 @@
             color: var(--text-muted);
         }
 
-        .player-card.dead::before {
-            content: 'DEAD';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            font-family: 'Cinzel', serif;
-            font-size: 2rem;
-            color: var(--accent);
-            opacity: 0.3;
-            pointer-events: none;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            letter-spacing: 4px;
+        .player-card.disconnected {
+            border-style: dashed;
         }
 
-        .player-card {
-            position: relative;
+        .player-card.disconnected::after {
+            content: 'DISCONNECTED';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.65rem;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         .player-header {
@@ -389,10 +460,6 @@
             background: linear-gradient(135deg, var(--accent), #5a0000);
         }
 
-        .status-btn.remove:hover {
-            box-shadow: 0 0 15px rgba(139, 0, 0, 0.7);
-        }
-
         .player-role {
             display: flex;
             gap: 8px;
@@ -408,6 +475,28 @@
             color: var(--text);
             font-family: 'Crimson Text', serif;
             font-size: 0.95rem;
+        }
+
+        .send-role-btn {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #166534, #14532d);
+            border: 2px solid #22c55e;
+            border-radius: 6px;
+            color: #86efac;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .send-role-btn:hover {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+        }
+
+        .send-role-btn.sent {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: #22c55e;
         }
 
         .team-toggle {
@@ -461,7 +550,7 @@
             font-family: 'Crimson Text', serif;
             font-size: 0.95rem;
             resize: none;
-            min-height: 60px;
+            min-height: 50px;
         }
 
         .player-notes::placeholder {
@@ -469,6 +558,7 @@
             font-style: italic;
         }
 
+        /* Sections */
         .section {
             background: var(--bg-card);
             border: 2px solid var(--gold-dark);
@@ -489,6 +579,7 @@
             padding-bottom: 8px;
         }
 
+        /* Nominations */
         .nomination-form {
             display: flex;
             flex-wrap: wrap;
@@ -522,33 +613,26 @@
             transition: all 0.3s;
         }
 
-        .nomination-form button:hover {
-            box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+        .current-nomination {
+            padding: 16px;
+            background: rgba(139, 0, 0, 0.2);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            margin-bottom: 16px;
         }
 
-        .history-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .history-item {
-            padding: 10px 12px;
-            background: rgba(30, 20, 20, 0.6);
-            border-radius: 6px;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-            border-left: 3px solid var(--gold-dark);
-        }
-
-        .history-item.execution {
-            border-left-color: var(--accent);
-            background: rgba(139, 0, 0, 0.15);
-        }
-
-        .history-item .day-label {
-            color: var(--gold);
+        .current-nomination h3 {
+            margin: 0 0 10px 0;
             font-family: 'Cinzel', serif;
+            color: var(--accent-light);
+            font-size: 1.1rem;
+        }
+
+        .vote-count {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
             font-weight: bold;
+            color: var(--gold);
         }
 
         .vote-controls {
@@ -573,32 +657,6 @@
             background: linear-gradient(135deg, #166534, #14532d);
             border-color: #22c55e;
             color: #86efac;
-        }
-
-        .vote-btn.yes:hover {
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
-        }
-
-        .current-nomination {
-            padding: 16px;
-            background: rgba(139, 0, 0, 0.2);
-            border: 2px solid var(--accent);
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .current-nomination h3 {
-            margin: 0 0 10px 0;
-            font-family: 'Cinzel', serif;
-            color: var(--accent-light);
-            font-size: 1.1rem;
-        }
-
-        .vote-count {
-            font-family: 'Cinzel', serif;
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--gold);
         }
 
         .actions {
@@ -626,48 +684,38 @@
             color: white;
         }
 
-        .action-btn.execute:hover {
-            box-shadow: 0 0 20px rgba(139, 0, 0, 0.7);
-        }
-
         .action-btn.cancel {
             background: rgba(60, 60, 60, 0.5);
             border-color: var(--dead);
             color: var(--text);
         }
 
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            padding: 16px;
-            background: var(--bg-card);
-            border: 2px solid var(--gold-dark);
-            border-radius: 12px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
         }
 
-        .stat {
-            text-align: center;
+        .history-item {
+            padding: 10px 12px;
+            background: rgba(30, 20, 20, 0.6);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            border-left: 3px solid var(--gold-dark);
         }
 
-        .stat-value {
+        .history-item.execution {
+            border-left-color: var(--accent);
+            background: rgba(139, 0, 0, 0.15);
+        }
+
+        .history-item .day-label {
+            color: var(--gold);
             font-family: 'Cinzel', serif;
-            font-size: 2rem;
             font-weight: bold;
         }
 
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat.alive .stat-value { color: var(--good); }
-        .stat.dead .stat-value { color: var(--accent); }
-
+        /* Buttons */
         .reset-btn {
             width: 100%;
             padding: 16px;
@@ -690,32 +738,46 @@
             box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
         }
 
-        /* Decorative blood splatter */
-        .blood-splatter {
-            position: fixed;
-            pointer-events: none;
-            z-index: -1;
+        .add-player {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
-        .blood-splatter-1 {
-            top: 20%;
-            left: 5%;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(ellipse at center, rgba(139, 0, 0, 0.3) 0%, transparent 70%);
-            filter: blur(2px);
+        .add-player input {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text);
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
         }
 
-        .blood-splatter-2 {
-            bottom: 30%;
-            right: 3%;
-            width: 80px;
-            height: 120px;
-            background: radial-gradient(ellipse at center, rgba(139, 0, 0, 0.25) 0%, transparent 70%);
-            filter: blur(3px);
+        .add-player input:focus {
+            outline: none;
+            border-color: var(--gold);
         }
 
-        /* Scrollbar styling */
+        .add-player button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border: 2px solid var(--accent-light);
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -729,10 +791,6 @@
             border-radius: 4px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--gold);
-        }
-
         /* Responsive */
         @media (max-width: 600px) {
             h1 {
@@ -743,6 +801,14 @@
                 grid-template-columns: 1fr;
             }
 
+            .game-code {
+                font-size: 2.5rem;
+            }
+
+            .qr-container {
+                flex-direction: column;
+            }
+
             .nav a {
                 font-size: 0.85rem;
                 padding: 6px 12px;
@@ -751,9 +817,6 @@
     </style>
 </head>
 <body>
-    <div class="blood-splatter blood-splatter-1"></div>
-    <div class="blood-splatter blood-splatter-2"></div>
-
     <div class="container">
         <nav class="nav">
             <a href="index.html" class="active">Game Tracker</a>
@@ -763,6 +826,23 @@
         <div class="clock-icon"></div>
         <h1>Blood on the Clocktower</h1>
         <p class="subtitle">"In the village of Ravenswood Bluff, evil lurks in the shadows..."</p>
+
+        <!-- QR Code Section - shown when game is active -->
+        <div class="qr-section" id="qr-section">
+            <h2>Players: Scan to Join</h2>
+            <div class="qr-container">
+                <div id="qr-code"></div>
+                <div class="game-code-display">
+                    <div class="game-code" id="game-code-display">----</div>
+                    <div class="game-code-label">Game Code</div>
+                    <div class="join-url" id="join-url"></div>
+                </div>
+            </div>
+            <div class="player-count">
+                <span id="connected-count">0</span> players connected
+            </div>
+            <button class="start-game-btn" id="new-game-btn" onclick="createNewGame()">Start New Game</button>
+        </div>
 
         <div class="phase-bar">
             <button class="phase-btn day active" onclick="setPhase('day')">Day</button>
@@ -779,11 +859,15 @@
                 <div class="stat-value" id="deadCount">0</div>
                 <div class="stat-label">Dead</div>
             </div>
+            <div class="stat connected">
+                <div class="stat-value" id="onlineCount">0</div>
+                <div class="stat-label">Online</div>
+            </div>
         </div>
 
         <div class="add-player">
-            <input type="text" id="playerName" placeholder="Enter a villager's name..." onkeypress="if(event.key==='Enter')addPlayer()">
-            <button onclick="addPlayer()">Add</button>
+            <input type="text" id="playerName" placeholder="Add player manually..." onkeypress="if(event.key==='Enter')addManualPlayer()">
+            <button onclick="addManualPlayer()">Add</button>
         </div>
 
         <div class="players-grid" id="playersGrid"></div>
@@ -806,10 +890,13 @@
             <div class="history-list" id="historyList"></div>
         </div>
 
-        <button class="reset-btn" onclick="resetGame()">Begin New Game</button>
+        <button class="reset-btn" onclick="resetGame()">End Game & Start New</button>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        const socket = io();
+
         const ROLES = [
             "-- Townsfolk --",
             "Washerwoman", "Librarian", "Investigator", "Chef", "Empath",
@@ -825,7 +912,18 @@
             "Unknown", "Custom"
         ];
 
+        const ROLE_TEAMS = {
+            "Washerwoman": "good", "Librarian": "good", "Investigator": "good",
+            "Chef": "good", "Empath": "good", "Fortune Teller": "good",
+            "Undertaker": "good", "Monk": "good", "Ravenkeeper": "good",
+            "Virgin": "good", "Slayer": "good", "Soldier": "good", "Mayor": "good",
+            "Butler": "good", "Drunk": "good", "Recluse": "good", "Saint": "good",
+            "Poisoner": "evil", "Spy": "evil", "Scarlet Woman": "evil", "Baron": "evil",
+            "Imp": "evil"
+        };
+
         let gameState = {
+            code: null,
             phase: 'day',
             dayNum: 1,
             players: [],
@@ -833,16 +931,84 @@
             currentNomination: null
         };
 
+        // Load saved state
         function loadState() {
-            const saved = localStorage.getItem('boctState');
+            const saved = localStorage.getItem('boctStorytellerState');
             if (saved) {
-                gameState = JSON.parse(saved);
+                const parsed = JSON.parse(saved);
+                gameState = { ...gameState, ...parsed };
+
+                // Try to rejoin existing game
+                if (gameState.code) {
+                    socket.emit('rejoin-game', gameState.code, (response) => {
+                        if (response.success) {
+                            // Merge connected players with saved state
+                            response.players.forEach(p => {
+                                const existing = gameState.players.find(ep => ep.name === p.name);
+                                if (existing) {
+                                    existing.socketId = p.id;
+                                    existing.disconnected = false;
+                                }
+                            });
+                            generateQRCode();
+                            render();
+                        } else {
+                            // Game expired, create new one
+                            gameState.code = null;
+                            createNewGame();
+                        }
+                    });
+                }
             }
             render();
         }
 
         function saveState() {
-            localStorage.setItem('boctState', JSON.stringify(gameState));
+            localStorage.setItem('boctStorytellerState', JSON.stringify(gameState));
+        }
+
+        function createNewGame() {
+            socket.emit('create-game', (response) => {
+                if (response.success) {
+                    gameState.code = response.code;
+                    gameState.players = [];
+                    gameState.history = [];
+                    gameState.phase = 'day';
+                    gameState.dayNum = 1;
+                    gameState.currentNomination = null;
+                    generateQRCode();
+                    saveState();
+                    render();
+                    document.getElementById('new-game-btn').textContent = 'New Game Started!';
+                    setTimeout(() => {
+                        document.getElementById('new-game-btn').textContent = 'Start New Game';
+                    }, 2000);
+                }
+            });
+        }
+
+        function generateQRCode() {
+            const joinUrl = `${window.location.origin}/player.html?code=${gameState.code}`;
+            document.getElementById('game-code-display').textContent = gameState.code || '----';
+            document.getElementById('join-url').textContent = joinUrl;
+
+            const qrContainer = document.getElementById('qr-code');
+            qrContainer.innerHTML = '';
+
+            if (gameState.code) {
+                QRCode.toCanvas(joinUrl, {
+                    width: 180,
+                    margin: 0,
+                    color: {
+                        dark: '#1a0a0a',
+                        light: '#ffffff'
+                    }
+                }, (error, canvas) => {
+                    if (!error) {
+                        qrContainer.appendChild(canvas);
+                    }
+                });
+            }
         }
 
         function setPhase(phase) {
@@ -850,22 +1016,26 @@
                 gameState.dayNum++;
             }
             gameState.phase = phase;
+            socket.emit('update-phase', { phase, dayNum: gameState.dayNum });
             saveState();
             render();
         }
 
-        function addPlayer() {
+        function addManualPlayer() {
             const input = document.getElementById('playerName');
             const name = input.value.trim();
             if (name) {
-                gameState.players.push({
-                    id: Date.now(),
+                const player = {
+                    id: 'manual_' + Date.now(),
+                    socketId: null,
                     name: name,
                     alive: true,
                     role: '',
                     team: '',
-                    notes: ''
-                });
+                    notes: '',
+                    isManual: true
+                };
+                gameState.players.push(player);
                 input.value = '';
                 saveState();
                 render();
@@ -876,12 +1046,19 @@
             const player = gameState.players.find(p => p.id === id);
             if (player) {
                 player.alive = !player.alive;
+                if (player.socketId) {
+                    socket.emit('update-player-status', { playerId: player.socketId, alive: player.alive });
+                }
                 saveState();
                 render();
             }
         }
 
         function removePlayer(id) {
+            const player = gameState.players.find(p => p.id === id);
+            if (player && player.socketId) {
+                socket.emit('remove-player', player.socketId);
+            }
             gameState.players = gameState.players.filter(p => p.id !== id);
             saveState();
             render();
@@ -891,7 +1068,20 @@
             const player = gameState.players.find(p => p.id === id);
             if (player) {
                 player.role = role;
+                player.team = ROLE_TEAMS[role] || '';
+                player.roleSent = false;
                 saveState();
+                render();
+            }
+        }
+
+        function sendRole(id) {
+            const player = gameState.players.find(p => p.id === id);
+            if (player && player.socketId && player.role) {
+                socket.emit('assign-role', { playerId: player.socketId, role: player.role });
+                player.roleSent = true;
+                saveState();
+                render();
             }
         }
 
@@ -916,11 +1106,7 @@
             const nominator = document.getElementById('nominator').value;
             const nominee = document.getElementById('nominee').value;
             if (nominator && nominee) {
-                gameState.currentNomination = {
-                    nominator,
-                    nominee,
-                    votes: 0
-                };
+                gameState.currentNomination = { nominator, nominee, votes: 0 };
                 saveState();
                 render();
             }
@@ -944,7 +1130,12 @@
                 });
 
                 const player = gameState.players.find(p => p.name === nom.nominee);
-                if (player) player.alive = false;
+                if (player) {
+                    player.alive = false;
+                    if (player.socketId) {
+                        socket.emit('update-player-status', { playerId: player.socketId, alive: false });
+                    }
+                }
 
                 gameState.currentNomination = null;
                 saveState();
@@ -967,16 +1158,18 @@
         }
 
         function resetGame() {
-            if (confirm('Are you sure you want to begin a new game? All current data will be lost.')) {
+            if (confirm('End current game and start a new one?')) {
+                socket.emit('end-game');
                 gameState = {
+                    code: null,
                     phase: 'day',
                     dayNum: 1,
                     players: [],
                     history: [],
                     currentNomination: null
                 };
-                saveState();
-                render();
+                localStorage.removeItem('boctStorytellerState');
+                createNewGame();
             }
         }
 
@@ -990,36 +1183,46 @@
             // Stats
             const alive = gameState.players.filter(p => p.alive).length;
             const dead = gameState.players.filter(p => !p.alive).length;
+            const online = gameState.players.filter(p => p.socketId && !p.disconnected).length;
             document.getElementById('aliveCount').textContent = alive;
             document.getElementById('deadCount').textContent = dead;
+            document.getElementById('onlineCount').textContent = online;
+            document.getElementById('connected-count').textContent = online;
 
             // Players
             const grid = document.getElementById('playersGrid');
             grid.innerHTML = gameState.players.map(p => `
-                <div class="player-card ${p.team} ${p.alive ? '' : 'dead'}">
+                <div class="player-card ${p.team} ${p.alive ? '' : 'dead'} ${p.disconnected ? 'disconnected' : ''}">
                     <div class="player-header">
-                        <div class="player-name">${p.name}</div>
+                        <div class="player-name">${p.name} ${p.socketId && !p.disconnected ? '<span style="color: #22c55e; font-size: 0.7rem;">ONLINE</span>' : ''}</div>
                         <div class="player-status">
-                            <button class="status-btn kill ${p.alive ? '' : 'dead'}" onclick="toggleDeath(${p.id})">
+                            <button class="status-btn kill ${p.alive ? '' : 'dead'}" onclick="toggleDeath('${p.id}')">
                                 ${p.alive ? '💀' : '❤️'}
                             </button>
-                            <button class="status-btn remove" onclick="removePlayer(${p.id})">✕</button>
+                            <button class="status-btn remove" onclick="removePlayer('${p.id}')">✕</button>
                         </div>
                     </div>
                     <div class="player-role">
-                        <select onchange="setRole(${p.id}, this.value)">
+                        <select onchange="setRole('${p.id}', this.value)">
                             <option value="">Select role...</option>
                             ${ROLES.map(r => r.startsWith('--') ?
                                 `<option disabled>${r}</option>` :
                                 `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`
                             ).join('')}
                         </select>
+                        ${p.socketId && p.role ? `
+                            <button class="send-role-btn ${p.roleSent ? 'sent' : ''}" onclick="sendRole('${p.id}')">
+                                ${p.roleSent ? '✓ Sent' : 'Send'}
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                         <div class="team-toggle">
-                            <button class="team-btn good-btn ${p.team === 'good' ? 'active' : ''}" onclick="setTeam(${p.id}, 'good')">Good</button>
-                            <button class="team-btn evil-btn ${p.team === 'evil' ? 'active' : ''}" onclick="setTeam(${p.id}, 'evil')">Evil</button>
+                            <button class="team-btn good-btn ${p.team === 'good' ? 'active' : ''}" onclick="setTeam('${p.id}', 'good')">Good</button>
+                            <button class="team-btn evil-btn ${p.team === 'evil' ? 'active' : ''}" onclick="setTeam('${p.id}', 'evil')">Evil</button>
                         </div>
                     </div>
-                    <textarea class="player-notes" placeholder="Notes, claims & suspicions..." onchange="setNotes(${p.id}, this.value)">${p.notes}</textarea>
+                    <textarea class="player-notes" placeholder="Notes, claims & suspicions..." onchange="setNotes('${p.id}', this.value)">${p.notes || ''}</textarea>
                 </div>
             `).join('');
 
@@ -1060,10 +1263,65 @@
                 <div class="history-item ${h.type}">
                     <span class="day-label">Day ${h.day}:</span> ${h.text}
                 </div>
-            `).join('') || '<div style="color: var(--text-muted); text-align: center; font-style: italic;">No events have been recorded...</div>';
+            `).join('') || '<div style="color: var(--text-muted); text-align: center; font-style: italic;">No events recorded...</div>';
         }
 
+        // Socket events
+        socket.on('player-joined', (data) => {
+            const existingIndex = gameState.players.findIndex(p => p.name === data.name);
+            if (existingIndex >= 0) {
+                gameState.players[existingIndex].socketId = data.id;
+                gameState.players[existingIndex].disconnected = false;
+            } else {
+                gameState.players.push({
+                    id: data.id,
+                    socketId: data.id,
+                    name: data.name,
+                    alive: true,
+                    role: '',
+                    team: '',
+                    notes: '',
+                    disconnected: false
+                });
+            }
+            saveState();
+            render();
+        });
+
+        socket.on('player-disconnected', (data) => {
+            const player = gameState.players.find(p => p.socketId === data.id);
+            if (player) {
+                player.disconnected = true;
+                render();
+            }
+        });
+
+        socket.on('player-reconnected', (data) => {
+            const player = gameState.players.find(p => p.name === data.name);
+            if (player) {
+                player.socketId = data.id;
+                player.disconnected = false;
+                saveState();
+                render();
+            }
+        });
+
+        socket.on('role-assigned-confirm', (data) => {
+            const player = gameState.players.find(p => p.socketId === data.playerId);
+            if (player) {
+                player.roleSent = true;
+                saveState();
+                render();
+            }
+        });
+
+        // Initialize
         loadState();
+        if (!gameState.code) {
+            createNewGame();
+        } else {
+            generateQRCode();
+        }
     </script>
 </body>
 </html>
