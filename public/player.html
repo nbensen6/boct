@@ -540,17 +540,29 @@
             document.getElementById('join-btn').disabled = true;
             document.getElementById('join-btn').textContent = 'Joining...';
 
+            // Add timeout in case server doesn't respond
+            let responded = false;
+            const timeout = setTimeout(() => {
+                if (!responded) {
+                    document.getElementById('join-btn').disabled = false;
+                    document.getElementById('join-btn').textContent = 'Enter the Village';
+                    showError('Connection timed out. The game may have ended. Ask the Storyteller to start a new game.');
+                }
+            }, 5000);
+
             socket.emit('join-game', { code, name }, (response) => {
+                responded = true;
+                clearTimeout(timeout);
                 document.getElementById('join-btn').disabled = false;
                 document.getElementById('join-btn').textContent = 'Enter the Village';
 
-                if (response.success) {
+                if (response && response.success) {
                     playerData = response.player;
                     gameCode = code;
                     localStorage.setItem('boctPlayerGame', JSON.stringify({ code, name }));
                     showWaitingScreen(name);
                 } else {
-                    showError(response.error);
+                    showError(response ? response.error : 'Failed to join. Please try again.');
                 }
             });
         }
