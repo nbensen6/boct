@@ -987,6 +987,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script>
         const socket = io();
 
@@ -1072,10 +1073,6 @@
                     generateQRCode();
                     saveState();
                     render();
-                    document.getElementById('new-game-btn').textContent = 'New Game Started!';
-                    setTimeout(() => {
-                        document.getElementById('new-game-btn').textContent = 'Start New Game';
-                    }, 2000);
                 }
             });
         }
@@ -1090,10 +1087,16 @@
             document.getElementById('join-url').textContent = `${window.location.origin}/player.html`;
 
             if (gameState.code) {
-                // Use QR code API service (most reliable method)
+                // Use QRious library to generate QR code locally
                 const qrImg = document.getElementById('qr-code-img');
-                const encodedUrl = encodeURIComponent(joinUrl);
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}`;
+                const qr = new QRious({
+                    value: joinUrl,
+                    size: 250,
+                    level: 'M',
+                    background: 'white',
+                    foreground: 'black'
+                });
+                qrImg.src = qr.toDataURL();
                 qrImg.style.display = 'block';
             }
         }
