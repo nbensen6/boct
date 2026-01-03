@@ -116,24 +116,30 @@
         .seat {
             position: absolute;
             width: 90px;
-            height: 110px;
+            height: 100px;
             transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.2s;
+        }
+
+        .seat:active {
+            cursor: grabbing;
         }
 
         .seat:hover {
             transform: translate(-50%, -50%) scale(1.05);
         }
 
-        .seat-number {
-            font-family: 'Cinzel', serif;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-bottom: 2px;
+        .seat.dragging {
+            opacity: 0.5;
+            z-index: 100;
+        }
+
+        .seat.drag-target {
+            transform: translate(-50%, -50%) scale(1.15);
         }
 
         .seat-token {
@@ -456,6 +462,7 @@
         };
 
         let draggedRole = null;
+        let draggedSeatIndex = null;
 
         function loadState() {
             const saved = localStorage.getItem('boctGrimoireState');
@@ -531,6 +538,7 @@
                 seatEl.style.left = x + '%';
                 seatEl.style.top = y + '%';
                 seatEl.dataset.seat = i;
+                seatEl.draggable = true;
 
                 const tokenClasses = ['seat-token'];
                 if (seat.role) tokenClasses.push('has-role');
@@ -538,7 +546,6 @@
                 if (!seat.alive) tokenClasses.push('dead');
 
                 seatEl.innerHTML = `
-                    <div class="seat-number">Seat ${seat.seatNum}</div>
                     <div class="${tokenClasses.join(' ')}"
                          ondragover="handleDragOver(event)"
                          ondrop="handleDrop(event, ${i})"
@@ -548,6 +555,13 @@
                     </div>
                     <div class="seat-player-name ${seat.alive ? '' : 'dead'}">${seat.playerName || ''}</div>
                 `;
+
+                // Seat drag handlers
+                seatEl.addEventListener('dragstart', (e) => handleSeatDragStart(e, i));
+                seatEl.addEventListener('dragend', handleSeatDragEnd);
+                seatEl.addEventListener('dragover', (e) => handleSeatDragOver(e, i));
+                seatEl.addEventListener('dragleave', handleSeatDragLeave);
+                seatEl.addEventListener('drop', (e) => handleSeatDrop(e, i));
 
                 area.appendChild(seatEl);
             });
@@ -603,7 +617,8 @@
             e.preventDefault();
             e.currentTarget.classList.remove('drag-over');
 
-            if (draggedRole) {
+            // Only handle role drops, not seat swaps
+            if (draggedRole && draggedSeatIndex === null) {
                 // Remove role from old seat if it was placed elsewhere
                 grimoireState.seats.forEach(s => {
                     if (s.role === draggedRole.role) {
@@ -621,9 +636,63 @@
         }
 
         function toggleSeatDeath(seatIndex) {
-            grimoireState.seats[seatIndex].alive = !grimoireState.seats[seatIndex].alive;
-            saveState();
-            renderSeats();
+            // Only toggle if we're not in the middle of a drag
+            if (draggedSeatIndex === null && draggedRole === null) {
+                grimoireState.seats[seatIndex].alive = !grimoireState.seats[seatIndex].alive;
+                saveState();
+                renderSeats();
+            }
+        }
+
+        // Seat drag handlers for swapping positions
+        function handleSeatDragStart(e, seatIndex) {
+            // Don't start seat drag if we're dragging from a role token
+            if (e.target.classList.contains('role-token')) return;
+
+            draggedSeatIndex = seatIndex;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', seatIndex.toString());
+        }
+
+        function handleSeatDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            draggedSeatIndex = null;
+            // Remove drag-target class from all seats
+            document.querySelectorAll('.seat').forEach(s => s.classList.remove('drag-target'));
+        }
+
+        function handleSeatDragOver(e, seatIndex) {
+            if (draggedSeatIndex !== null && draggedSeatIndex !== seatIndex) {
+                e.preventDefault();
+                e.currentTarget.classList.add('drag-target');
+            }
+        }
+
+        function handleSeatDragLeave(e) {
+            e.currentTarget.classList.remove('drag-target');
+        }
+
+        function handleSeatDrop(e, targetIndex) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-target');
+
+            if (draggedSeatIndex !== null && draggedSeatIndex !== targetIndex) {
+                // Swap the two seats
+                const temp = { ...grimoireState.seats[draggedSeatIndex] };
+                grimoireState.seats[draggedSeatIndex] = { ...grimoireState.seats[targetIndex] };
+                grimoireState.seats[targetIndex] = temp;
+
+                // Update seat numbers to match positions
+                grimoireState.seats.forEach((seat, i) => {
+                    seat.seatNum = i + 1;
+                });
+
+                saveState();
+                renderSeats();
+                renderTokens();
+            }
+            draggedSeatIndex = null;
         }
 
         function syncFromTracker() {
