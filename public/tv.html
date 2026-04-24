@@ -663,16 +663,15 @@
 
         let ytPlayer = null;
         let ytReady = false;
-        // default: video ON, sound OFF (browsers require user gesture for audio)
-        let bgVideoOn = localStorage.getItem(BG_ON_KEY) !== 'false';
-        let bgSoundWanted = localStorage.getItem(BG_SOUND_KEY) === 'true';
+        let videoEnabled = localStorage.getItem(BG_ON_KEY) !== 'false'; // default ON
+        let soundEnabled = localStorage.getItem(BG_SOUND_KEY) === 'true'; // default OFF
 
         function ytEmbedUrl() {
             const params = new URLSearchParams({
                 autoplay: '1',
-                mute: '1',                  // required for autoplay; we unmute via API after user gesture
+                mute: '1',
                 loop: '1',
-                playlist: BG_VIDEO_ID,      // required for loop
+                playlist: BG_VIDEO_ID,
                 controls: '0',
                 modestbranding: '1',
                 rel: '0',
@@ -687,57 +686,64 @@
             return `https://www.youtube.com/embed/${BG_VIDEO_ID}?${params}`;
         }
 
-        function applyBgVideoState() {
-            const iframe = document.getElementById('bg-video');
-            const toggleBtn = document.getElementById('toggle-video-btn');
-            if (bgVideoOn) {
-                document.body.classList.add('video-on');
-                if (!iframe.src) iframe.src = ytEmbedUrl();
-                toggleBtn.textContent = 'Ambient: On';
-                toggleBtn.classList.remove('off');
+        function updateVideoUi() {
+            document.body.classList.toggle('video-on', videoEnabled);
+            const btn = document.getElementById('toggle-video-btn');
+            btn.textContent = 'Ambient: ' + (videoEnabled ? 'On' : 'Off');
+            btn.classList.toggle('off', !videoEnabled);
+        }
+
+        function updateSoundUi() {
+            const btn = document.getElementById('toggle-sound-btn');
+            btn.textContent = 'Sound: ' + (soundEnabled ? 'On' : 'Off');
+            btn.classList.toggle('off', !soundEnabled);
+            const hint = document.getElementById('sound-hint');
+            // Show hint when user wants sound but player is still muted
+            if (soundEnabled && ytPlayer && ytReady && ytPlayer.isMuted && ytPlayer.isMuted()) {
+                hint.style.display = 'block';
             } else {
-                document.body.classList.remove('video-on');
-                iframe.src = '';
-                ytPlayer = null;
-                ytReady = false;
-                toggleBgSoundUi(false);
-                toggleBtn.textContent = 'Ambient: Off';
-                toggleBtn.classList.add('off');
-                document.getElementById('sound-hint').style.display = 'none';
+                hint.style.display = 'none';
             }
+        }
+
+        function applySoundToPlayer() {
+            if (!ytPlayer || !ytReady) return;
+            try {
+                if (soundEnabled) {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(50);
+                } else {
+                    ytPlayer.mute();
+                }
+            } catch (e) { console.warn('YT sound apply failed:', e); }
+            updateSoundUi();
         }
 
         function toggleBgVideo() {
-            bgVideoOn = !bgVideoOn;
-            localStorage.setItem(BG_ON_KEY, bgVideoOn);
-            applyBgVideoState();
-        }
-
-        function toggleBgSoundUi(isOn) {
-            const btn = document.getElementById('toggle-sound-btn');
-            btn.textContent = isOn ? 'Sound: On' : 'Sound: Off';
-            btn.classList.toggle('off', !isOn);
-        }
-
-        function toggleBgSound() {
-            if (!ytPlayer || !ytReady) return;
-            const muted = ytPlayer.isMuted();
-            if (muted) {
-                ytPlayer.unMute();
-                ytPlayer.setVolume(50);
-                bgSoundWanted = true;
-                localStorage.setItem(BG_SOUND_KEY, 'true');
-                toggleBgSoundUi(true);
-                document.getElementById('sound-hint').style.display = 'none';
-            } else {
-                ytPlayer.mute();
-                bgSoundWanted = false;
-                localStorage.setItem(BG_SOUND_KEY, 'false');
-                toggleBgSoundUi(false);
+            videoEnabled = !videoEnabled;
+            localStorage.setItem(BG_ON_KEY, videoEnabled);
+            updateVideoUi();
+            if (ytPlayer && ytReady) {
+                try {
+                    if (videoEnabled) ytPlayer.playVideo();
+                    else ytPlayer.pauseVideo();
+                } catch (e) {}
             }
         }
 
-        // YouTube IFrame API loader
+        function toggleBgSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem(BG_SOUND_KEY, soundEnabled);
+            // This click IS the user gesture browsers require for audio.
+            applySoundToPlayer();
+        }
+
+        // Eagerly populate iframe src so the YT API has something to attach to
+        document.getElementById('bg-video').src = ytEmbedUrl();
+        updateVideoUi();
+        updateSoundUi();
+
+        // Load YT IFrame API
         (function loadYtApi() {
             const tag = document.createElement('script');
             tag.src = 'https://www.youtube.com/iframe_api';
@@ -745,41 +751,41 @@
         })();
 
         window.onYouTubeIframeAPIReady = function() {
-            if (!bgVideoOn) return;
             ytPlayer = new YT.Player('bg-video', {
                 events: {
-                    'onReady': (e) => {
+                    onReady: (e) => {
                         ytReady = true;
-                        e.target.mute();        // start muted — autoplay allowance
-                        e.target.playVideo();
-                        if (bgSoundWanted) {
-                            // show hint until the user clicks (required to unmute)
-                            document.getElementById('sound-hint').style.display = 'block';
+                        try { e.target.mute(); } catch (_) {}
+                        try { e.target.playVideo(); } catch (_) {}
+                        if (!videoEnabled) {
+                            try { e.target.pauseVideo(); } catch (_) {}
                         }
+                        // If user had sound enabled from a previous session,
+                        // the hint will show until they click (required gesture).
+                        updateSoundUi();
                     },
-                    'onStateChange': (e) => {
-                        // YT.PlayerState.ENDED = 0; loop param should handle it, but this is a safety net
-                        if (e.data === 0) e.target.playVideo();
+                    onStateChange: (e) => {
+                        // Safety loop (loop param isn't always reliable)
+                        if (e.data === 0) { try { e.target.playVideo(); } catch (_) {} }
+                    },
+                    onError: (e) => {
+                        console.warn('YT error:', e.data);
                     }
                 }
             });
         };
 
-        // First click anywhere enables sound (if user wants it)
+        // Any click anywhere counts as the required user gesture — unmute if wanted.
+        // Not capture: true — let button clicks run first so toggleBgSound can flip state.
         document.addEventListener('click', () => {
-            if (ytPlayer && ytReady && bgSoundWanted && ytPlayer.isMuted()) {
-                ytPlayer.unMute();
-                ytPlayer.setVolume(50);
-                toggleBgSoundUi(true);
-                document.getElementById('sound-hint').style.display = 'none';
+            if (ytPlayer && ytReady && soundEnabled && ytPlayer.isMuted && ytPlayer.isMuted()) {
+                try {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(50);
+                } catch (_) {}
+                updateSoundUi();
             }
-        }, { capture: true });
-
-        // Apply initial state
-        applyBgVideoState();
-        if (bgSoundWanted && bgVideoOn) {
-            document.getElementById('sound-hint').style.display = 'block';
-        }
+        });
 
         // ===== Socket / game view =====
         const socket = io();
@@ -843,10 +849,19 @@
         function showSplash() {
             document.getElementById('splash').style.display = 'flex';
             document.getElementById('game-view').style.display = 'none';
-            document.getElementById('splash-code').textContent = '----';
-            document.getElementById('splash-url').textContent = `${window.location.origin}/player.html`;
-            // Blank QR
-            document.getElementById('splash-qr').src = '';
+            document.getElementById('splash-code').textContent = 'Waiting…';
+            const joinUrl = `${window.location.origin}/player.html`;
+            document.getElementById('splash-url').textContent = joinUrl;
+            // Still render a scannable QR so early-arriving players can land on
+            // the join page and wait — they'll enter the code once it's up.
+            const qr = new QRious({
+                value: joinUrl,
+                size: 420,
+                level: 'M',
+                background: '#f7f1df',
+                foreground: '#1a0d2e'
+            });
+            document.getElementById('splash-qr').src = qr.toDataURL();
         }
 
         function showSplashWithCode(code) {

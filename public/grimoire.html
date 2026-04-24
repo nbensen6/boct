@@ -139,8 +139,8 @@
 
         .seat {
             position: absolute;
-            width: 90px;
-            height: 100px;
+            width: 110px;
+            height: 130px;
             transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
@@ -159,20 +159,23 @@
             border-color: var(--gold);
         }
 
+        .seat.drop-target .seat-token {
+            box-shadow: 0 0 30px var(--gold);
+            border-color: var(--gold);
+            transform: scale(1.1);
+        }
+
         .seat-token {
-            width: 70px;
-            height: 70px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             border: 3px solid var(--gold-dark);
-            background: var(--bg-card);
+            background: radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.08), var(--bg-card));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.65rem;
-            text-align: center;
-            padding: 4px;
-            font-family: 'Cinzel', serif;
-            color: var(--text);
+            font-size: 2.2rem;
+            line-height: 1;
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
@@ -208,15 +211,32 @@
             transform: rotate(-45deg);
         }
 
-        .seat-player-name {
-            font-size: 0.75rem;
+        .seat-role-name {
+            font-size: 0.7rem;
+            font-family: 'Cinzel', serif;
             color: var(--gold);
-            margin-top: 4px;
             text-align: center;
-            max-width: 80px;
+            max-width: 110px;
+            line-height: 1.1;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+        }
+        .seat-role-name.empty {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .seat-player-name {
+            font-size: 0.7rem;
+            color: var(--text);
+            margin-top: 2px;
+            text-align: center;
+            max-width: 110px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            font-style: italic;
         }
 
         .seat-player-name.dead {
@@ -226,7 +246,7 @@
 
         /* Role tokens panel */
         .tokens-panel {
-            width: 280px;
+            width: 320px;
             background: var(--bg-card);
             border: 2px solid var(--gold-dark);
             border-radius: 12px;
@@ -265,62 +285,74 @@
         .token-category.demons h3 { color: #7f1d1d; }
 
         .token-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: 10px;
         }
 
         .role-token {
-            width: 55px;
-            height: 55px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: grab;
+            transition: all 0.2s;
+            padding: 2px;
+        }
+        .role-token:active { cursor: grabbing; }
+        .role-token.dragging { opacity: 0.4; }
+
+        .role-token .token-circle {
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             border: 3px solid;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.55rem;
-            text-align: center;
-            padding: 4px;
-            font-family: 'Cinzel', serif;
-            cursor: pointer;
+            font-size: 1.6rem;
+            line-height: 1;
+            background: radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.08), var(--bg-dark));
             transition: all 0.2s;
-            background: var(--bg-dark);
         }
 
-        .role-token:hover {
-            transform: scale(1.1);
+        .role-token .token-label {
+            margin-top: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.65rem;
+            text-align: center;
+            line-height: 1.1;
+            letter-spacing: 0.3px;
+            color: var(--text);
+            max-width: 80px;
+            word-wrap: break-word;
         }
 
-        .role-token.selected {
+        .role-token:hover .token-circle {
+            transform: scale(1.08);
+        }
+
+        .role-token.selected .token-circle {
             transform: scale(1.15);
             box-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold);
             border-color: var(--gold) !important;
         }
 
-        .role-token.townsfolk {
-            border-color: var(--good);
-            color: var(--good);
-        }
+        .role-token.townsfolk .token-circle { border-color: var(--good); }
+        .role-token.townsfolk .token-label { color: var(--good); }
 
-        .role-token.outsider {
-            border-color: #9ca3af;
-            color: #9ca3af;
-        }
+        .role-token.outsider .token-circle { border-color: #9ca3af; }
+        .role-token.outsider .token-label { color: #9ca3af; }
 
-        .role-token.minion {
-            border-color: var(--evil);
-            color: var(--evil);
-        }
+        .role-token.minion .token-circle { border-color: var(--evil); }
+        .role-token.minion .token-label { color: #fca5a5; }
 
-        .role-token.demon {
+        .role-token.demon .token-circle {
             border-color: #7f1d1d;
-            color: #dc2626;
             background: linear-gradient(135deg, #1a0505, #2d0a0a);
         }
+        .role-token.demon .token-label { color: #dc2626; }
 
-        .role-token.used {
-            opacity: 0.3;
-        }
+        .role-token.used { opacity: 0.3; }
 
         /* Controls */
         .controls {
@@ -379,14 +411,19 @@
             }
 
             .seat-token {
-                width: 50px;
-                height: 50px;
-                font-size: 0.5rem;
+                width: 58px;
+                height: 58px;
+                font-size: 1.7rem;
             }
 
             .seat {
-                width: 60px;
-                height: 80px;
+                width: 90px;
+                height: 115px;
+            }
+
+            .seat-role-name, .seat-player-name {
+                font-size: 0.62rem;
+                max-width: 90px;
             }
         }
     </style>
@@ -444,7 +481,7 @@
             <div class="tokens-panel">
                 <h2>Role Tokens</h2>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px 0; text-align: center;">
-                    Tap a role, then tap a seat to assign
+                    Drag a role onto a seat &mdash; or tap a role, then tap a seat
                 </p>
 
                 <div class="token-category townsfolk">
@@ -506,6 +543,46 @@
                 demons: ["Fang Gu", "Vigormortis", "No Dashii", "Vortox"]
             }
         };
+
+        // Role → emoji map. Used in both the seat circles and the token panel.
+        // Keeps the token visually distinct while letting the text name sit BELOW
+        // the circle so long names like "Scarlet Woman" no longer overflow.
+        const ROLE_EMOJI = {
+            // Trouble Brewing
+            "Washerwoman": "🧺", "Librarian": "📚", "Investigator": "🔍", "Chef": "👨‍🍳",
+            "Empath": "💗", "Fortune Teller": "🔮", "Undertaker": "⚰️", "Monk": "🛡️",
+            "Ravenkeeper": "🦅", "Virgin": "⚜️", "Slayer": "🏹", "Soldier": "⚔️",
+            "Mayor": "👑", "Butler": "🎩", "Drunk": "🍺", "Recluse": "🕸️",
+            "Saint": "✨", "Poisoner": "🧪", "Spy": "👁️", "Scarlet Woman": "💋",
+            "Baron": "⚖️", "Imp": "😈",
+            // Bad Moon Rising
+            "Grandmother": "👵", "Sailor": "⚓", "Chambermaid": "🛏️", "Exorcist": "🕯️",
+            "Innkeeper": "🏨", "Gambler": "🎲", "Gossip": "💬", "Courtier": "🥂",
+            "Professor": "🎓", "Minstrel": "🎵", "Tea Lady": "🫖", "Pacifist": "🕊️",
+            "Fool": "🃏", "Tinker": "🔧", "Moonchild": "🌙", "Goon": "🧔",
+            "Lunatic": "🌕", "Godfather": "🤵", "Devil's Advocate": "😇", "Assassin": "🗡️",
+            "Mastermind": "🧠", "Zombuul": "🧟", "Pukka": "☠️", "Shabaloth": "👹", "Po": "👺",
+            // Sects & Violets
+            "Clockmaker": "🕰️", "Dreamer": "💭", "Snake Charmer": "🐍", "Mathematician": "🔢",
+            "Flowergirl": "🌸", "Town Crier": "📣", "Oracle": "🏛️", "Savant": "🎩",
+            "Seamstress": "🧵", "Philosopher": "📖", "Artist": "🎨", "Juggler": "🤹",
+            "Sage": "🧙", "Mutant": "🧬", "Sweetheart": "💞", "Barber": "✂️",
+            "Klutz": "🤦", "Evil Twin": "👯", "Witch": "🧙‍♀️", "Cerenovus": "👻",
+            "Pit-Hag": "🎃", "Fang Gu": "🧛", "Vigormortis": "💀", "No Dashii": "👽",
+            "Vortox": "🌀"
+        };
+
+        const CATEGORY_FALLBACK = {
+            townsfolk: "🌾",
+            outsiders: "🎭",
+            minions: "🗡️",
+            demons: "😈"
+        };
+
+        function roleEmoji(role, category) {
+            if (!role) return '';
+            return ROLE_EMOJI[role] || (category && CATEGORY_FALLBACK[category]) || '❓';
+        }
 
         let currentEdition = 'trouble_brewing';
 
@@ -587,6 +664,15 @@
             renderTokens();
         }
 
+        function roleCategory(role) {
+            const edition = EDITIONS[currentEdition];
+            if (edition.townsfolk.includes(role)) return 'townsfolk';
+            if (edition.outsiders.includes(role)) return 'outsiders';
+            if (edition.minions.includes(role)) return 'minions';
+            if (edition.demons.includes(role)) return 'demons';
+            return null;
+        }
+
         function renderSeats() {
             const area = document.getElementById('circleArea');
             const centerX = 50;
@@ -610,17 +696,41 @@
                 if (seat.team) tokenClasses.push(seat.team);
                 if (!seat.alive) tokenClasses.push('dead');
 
+                const emoji = seat.role ? roleEmoji(seat.role, roleCategory(seat.role)) : '?';
+                const roleLabel = seat.role
+                    ? `<div class="seat-role-name">${escapeHtml(seat.role)}</div>`
+                    : `<div class="seat-role-name empty">empty</div>`;
+                const playerLabel = seat.playerName
+                    ? `<div class="seat-player-name ${seat.alive ? '' : 'dead'}">${escapeHtml(seat.playerName)}</div>`
+                    : '';
+
                 seatEl.innerHTML = `
-                    <div class="${tokenClasses.join(' ')}">
-                        ${seat.role || '?'}
-                    </div>
-                    <div class="seat-player-name ${seat.alive ? '' : 'dead'}">${seat.playerName || ''}</div>
+                    <div class="${tokenClasses.join(' ')}">${emoji}</div>
+                    ${roleLabel}
+                    ${playerLabel}
                 `;
 
                 seatEl.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     handleSeatTap(i);
+                });
+
+                // Drag-and-drop target
+                seatEl.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    seatEl.classList.add('drop-target');
+                });
+                seatEl.addEventListener('dragleave', () => {
+                    seatEl.classList.remove('drop-target');
+                });
+                seatEl.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    seatEl.classList.remove('drop-target');
+                    const role = e.dataTransfer.getData('text/role');
+                    const category = e.dataTransfer.getData('text/category');
+                    if (role) assignRoleToSeat(i, role, category);
                 });
 
                 area.appendChild(seatEl);
@@ -632,25 +742,76 @@
             const edition = EDITIONS[currentEdition];
 
             ['townsfolk', 'outsiders', 'minions', 'demons'].forEach(category => {
-                const container = document.getElementById(category === 'outsiders' ? 'outsiderTokens' :
-                                  category === 'minions' ? 'minionTokens' :
-                                  category === 'demons' ? 'demonTokens' : 'townsfolkTokens');
+                const container = document.getElementById(
+                    category === 'outsiders' ? 'outsiderTokens' :
+                    category === 'minions' ? 'minionTokens' :
+                    category === 'demons' ? 'demonTokens' : 'townsfolkTokens'
+                );
+
+                const singular = category === 'outsiders' ? 'outsider' :
+                                 category === 'minions' ? 'minion' :
+                                 category === 'demons' ? 'demon' : 'townsfolk';
 
                 container.innerHTML = edition[category].map(role => {
-                    const tokenClass = category === 'outsiders' ? 'outsider' :
-                                      category === 'minions' ? 'minion' :
-                                      category === 'demons' ? 'demon' : 'townsfolk';
                     const usedClass = usedRoles.has(role) ? 'used' : '';
                     const selectedClass = selectedRole && selectedRole.role === role ? 'selected' : '';
-
                     return `
-                        <div class="role-token ${tokenClass} ${usedClass} ${selectedClass}"
-                             onclick="handleRoleTap('${role}', '${category}')">
-                            ${role}
+                        <div class="role-token ${singular} ${usedClass} ${selectedClass}"
+                             draggable="true"
+                             data-role="${escapeHtml(role)}"
+                             data-category="${category}"
+                             title="${escapeHtml(role)}">
+                            <div class="token-circle">${roleEmoji(role, category)}</div>
+                            <div class="token-label">${escapeHtml(role)}</div>
                         </div>
                     `;
                 }).join('');
+
+                // Wire up handlers on the freshly-rendered tokens
+                container.querySelectorAll('.role-token').forEach(tokenEl => {
+                    const role = tokenEl.dataset.role;
+                    const cat = tokenEl.dataset.category;
+                    tokenEl.addEventListener('click', () => handleRoleTap(role, cat));
+                    tokenEl.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/role', role);
+                        e.dataTransfer.setData('text/category', cat);
+                        e.dataTransfer.effectAllowed = 'move';
+                        tokenEl.classList.add('dragging');
+                    });
+                    tokenEl.addEventListener('dragend', () => {
+                        tokenEl.classList.remove('dragging');
+                    });
+                });
             });
+        }
+
+        function assignRoleToSeat(seatIndex, role, category) {
+            const team = (category === 'minions' || category === 'demons') ? 'evil' : 'good';
+            // Remove role from any prior seat so it isn't duplicated
+            grimoireState.seats.forEach(s => {
+                if (s.role === role) {
+                    s.role = null;
+                    s.team = null;
+                }
+            });
+            grimoireState.seats[seatIndex].role = role;
+            grimoireState.seats[seatIndex].team = team;
+            selectedRole = null;
+            selectedSeatIndex = null;
+            saveState();
+            updateSelectionHint();
+            renderSeats();
+            renderTokens();
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function handleRoleTap(role, category) {
@@ -684,21 +845,10 @@
 
             // If a role is selected, assign it to this seat
             if (selectedRole) {
-                // Remove role from old seat if it was placed elsewhere
-                grimoireState.seats.forEach(s => {
-                    if (s.role === selectedRole.role) {
-                        s.role = null;
-                        s.team = null;
-                    }
-                });
-
-                grimoireState.seats[seatIndex].role = selectedRole.role;
-                grimoireState.seats[seatIndex].team = selectedRole.team;
-                selectedRole = null;
-                saveState();
-                updateSelectionHint();
-                renderSeats();
-                renderTokens();
+                const cat = selectedRole.team === 'evil'
+                    ? (EDITIONS[currentEdition].demons.includes(selectedRole.role) ? 'demons' : 'minions')
+                    : (EDITIONS[currentEdition].outsiders.includes(selectedRole.role) ? 'outsiders' : 'townsfolk');
+                assignRoleToSeat(seatIndex, selectedRole.role, cat);
                 return;
             }
 

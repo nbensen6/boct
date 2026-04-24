@@ -1333,12 +1333,16 @@
                             broadcastStateToTv();
                             render();
                         } else {
-                            // Local code not valid — check if server has an active game to recover
-                            tryRecoverActiveGame();
+                            // Saved code is stale (e.g. server restarted). Clear it and
+                            // either recover the server's current active game or create
+                            // a new one — otherwise the narrator silently sits with a
+                            // ghost code that doesn't exist on the server.
+                            gameState.code = null;
+                            tryRecoverActiveGame(/* autoCreateIfNone */ true);
                         }
                     });
                 } else {
-                    tryRecoverActiveGame();
+                    tryRecoverActiveGame(/* autoCreateIfNone */ true);
                 }
             } else {
                 tryRecoverActiveGame();
@@ -1349,7 +1353,9 @@
         // If narrator has no local state but an active game exists on the server
         // (e.g. accidentally cleared cookies / different browser), offer to rejoin it
         // instead of silently creating a brand-new game.
-        function tryRecoverActiveGame() {
+        // If autoCreateIfNone, automatically spin up a new game when no server-side
+        // game is found — avoids the narrator being stranded with no game.
+        function tryRecoverActiveGame(autoCreateIfNone) {
             socket.emit('get-active-game', (resp) => {
                 if (resp && resp.success) {
                     const msg = `An active game (${resp.code}) is already running on the server. Rejoin it?\n\nOK = Rejoin  |  Cancel = Start a fresh game`;
@@ -1377,7 +1383,12 @@
                                 render();
                             }
                         });
+                    } else if (autoCreateIfNone) {
+                        createNewGame();
                     }
+                } else if (autoCreateIfNone) {
+                    // No server-side game — start one so the TV & players have something to join
+                    createNewGame();
                 }
             });
         }
