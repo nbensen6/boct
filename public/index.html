@@ -1246,15 +1246,53 @@
                     if (!gameState.code) return;
                     socket.emit('rejoin-game', gameState.code, (r2) => {
                         if (r2 && r2.success) {
-                            // Re-broadcast our current state so the TV and any
-                            // other narrator tabs catch up on anything they
-                            // may have missed during the disconnect.
+                            // Pull any players that joined while our socket
+                            // was disconnected (e.g. a phone player joining
+                            // during a narrator wifi blip). Without this, a
+                            // missed 'player-joined' event means they never
+                            // show up in the narrator's roster or on the TV.
+                            mergeServerPlayers(r2.players);
+                            saveState();
+                            render();
+                            // Re-broadcast so the TV & other narrator tabs
+                            // catch up on anything else they missed.
                             broadcastStateToTv();
                         }
                     });
                 });
             } catch (e) {}
         });
+
+        // Merge a server-side player list into gameState.players.
+        // - Existing players (match by case-insensitive name): update socketId
+        //   and clear disconnected flag.
+        // - New players not in gameState: append a fresh entry.
+        function mergeServerPlayers(serverPlayers) {
+            if (!Array.isArray(serverPlayers)) return;
+            serverPlayers.forEach(p => {
+                const existing = gameState.players.find(
+                    ep => (ep.name || '').toLowerCase() === (p.name || '').toLowerCase()
+                );
+                if (existing) {
+                    existing.socketId = p.id;
+                    existing.disconnected = false;
+                    if (p.role && !existing.role) existing.role = p.role;
+                    if (typeof p.alive === 'boolean') existing.alive = p.alive;
+                } else {
+                    gameState.players.push({
+                        id: p.id,
+                        socketId: p.id,
+                        name: p.name,
+                        alive: p.alive !== false,
+                        role: p.role || '',
+                        team: '',
+                        notes: '',
+                        roleSent: !!p.role,
+                        disconnected: false
+                    });
+                }
+            });
+        }
 
         const EDITIONS = {
             trouble_brewing: {
@@ -1358,16 +1396,12 @@
                                     suppressBroadcast = false;
                                 }
                             }
-                            // Merge connected players with saved state
-                            response.players.forEach(p => {
-                                const existing = gameState.players.find(ep => ep.name === p.name);
-                                if (existing) {
-                                    existing.socketId = p.id;
-                                    existing.disconnected = false;
-                                }
-                            });
+                            // Merge connected players with saved state (adds
+                            // any players that joined while we weren't listening).
+                            mergeServerPlayers(response.players);
                             generateQRCode();
                             broadcastStateToTv();
+                            saveState();
                             render();
                         } else {
                             // Saved code is stale (e.g. server restarted). Clear it and
