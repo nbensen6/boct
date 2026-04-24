@@ -35,15 +35,104 @@
             overflow: hidden;
         }
 
+        /* Layer stack (bottom → top):
+           -3  .static-bg       Background.jpg (shown only when video bg is off)
+           -2  #bg-video-wrap   YouTube iframe in cover fit
+           -1  body::before     Dark gradient + purple vignette over either layer
+        */
+        .static-bg {
+            position: fixed;
+            inset: 0;
+            background: url('/assets/Background.jpg') center/cover no-repeat;
+            z-index: -3;
+        }
+        body.video-on .static-bg { display: none; }
+
+        #bg-video-wrap {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: -2;
+            display: none;
+            pointer-events: none;
+        }
+        body.video-on #bg-video-wrap { display: block; }
+
+        /* YouTube cover fit: scale to max(16/9 of height, 9/16 of width) */
+        #bg-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 56.25vw;      /* 16:9 at full width */
+            min-height: 100vh;
+            min-width: 177.78vh;  /* 16:9 at full height */
+            border: 0;
+            pointer-events: none;
+        }
+
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse at top, rgba(107, 63, 160, 0.25), transparent 60%),
-                linear-gradient(to bottom, rgba(14, 11, 31, 0.55), rgba(7, 6, 15, 0.95)),
-                url('/assets/Background.jpg') center/cover no-repeat;
+                radial-gradient(ellipse at top, rgba(107, 63, 160, 0.2), transparent 60%),
+                linear-gradient(to bottom, rgba(14, 11, 31, 0.45), rgba(7, 6, 15, 0.85));
             z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Corner controls for ambient video */
+        .ambient-controls {
+            position: fixed;
+            bottom: 14px;
+            left: 14px;
+            z-index: 20;
+            display: flex;
+            gap: 8px;
+            opacity: 0.65;
+            transition: opacity 0.3s;
+        }
+        .ambient-controls:hover { opacity: 1; }
+        .ambient-btn {
+            padding: 6px 12px;
+            background: rgba(20, 14, 36, 0.85);
+            border: 1px solid var(--gold-dark);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .ambient-btn:hover { border-color: var(--gold); }
+        .ambient-btn.off { color: var(--text-muted); }
+
+        /* Hint banner that appears when sound is muted & video is on */
+        .sound-hint {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 14, 36, 0.95);
+            border: 2px solid var(--blood);
+            color: var(--text);
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 24px rgba(139, 14, 30, 0.45);
+            z-index: 30;
+            display: none;
+            animation: pulse-hint 2s ease-in-out infinite;
+        }
+        @keyframes pulse-hint {
+            0%, 100% { box-shadow: 0 0 24px rgba(139, 14, 30, 0.45); }
+            50% { box-shadow: 0 0 36px rgba(139, 14, 30, 0.75); }
         }
 
         /* ---------- SHARED TITLE BAR ---------- */
@@ -469,6 +558,22 @@
     </style>
 </head>
 <body>
+    <div class="static-bg"></div>
+    <div id="bg-video-wrap">
+        <iframe id="bg-video"
+            src=""
+            allow="autoplay; encrypted-media"
+            frameborder="0"
+            allowfullscreen></iframe>
+    </div>
+
+    <div class="sound-hint" id="sound-hint">🔊 Click anywhere to enable sound</div>
+
+    <div class="ambient-controls">
+        <button class="ambient-btn" id="toggle-video-btn" onclick="toggleBgVideo()">Ambient: Off</button>
+        <button class="ambient-btn off" id="toggle-sound-btn" onclick="toggleBgSound()">Sound: Off</button>
+    </div>
+
     <div class="title-bar">
         <h1>Ravenswood Bluff</h1>
         <div class="clock-flair">
@@ -550,6 +655,133 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script>
+        // ===== Ambient YouTube background =====
+        const BG_VIDEO_ID = 'gVKEM4K8J8A';
+        const BG_VIDEO_START = 7;
+        const BG_ON_KEY = 'boctTvBgOn';
+        const BG_SOUND_KEY = 'boctTvBgSound';
+
+        let ytPlayer = null;
+        let ytReady = false;
+        // default: video ON, sound OFF (browsers require user gesture for audio)
+        let bgVideoOn = localStorage.getItem(BG_ON_KEY) !== 'false';
+        let bgSoundWanted = localStorage.getItem(BG_SOUND_KEY) === 'true';
+
+        function ytEmbedUrl() {
+            const params = new URLSearchParams({
+                autoplay: '1',
+                mute: '1',                  // required for autoplay; we unmute via API after user gesture
+                loop: '1',
+                playlist: BG_VIDEO_ID,      // required for loop
+                controls: '0',
+                modestbranding: '1',
+                rel: '0',
+                showinfo: '0',
+                iv_load_policy: '3',
+                disablekb: '1',
+                playsinline: '1',
+                start: String(BG_VIDEO_START),
+                enablejsapi: '1',
+                origin: window.location.origin
+            });
+            return `https://www.youtube.com/embed/${BG_VIDEO_ID}?${params}`;
+        }
+
+        function applyBgVideoState() {
+            const iframe = document.getElementById('bg-video');
+            const toggleBtn = document.getElementById('toggle-video-btn');
+            if (bgVideoOn) {
+                document.body.classList.add('video-on');
+                if (!iframe.src) iframe.src = ytEmbedUrl();
+                toggleBtn.textContent = 'Ambient: On';
+                toggleBtn.classList.remove('off');
+            } else {
+                document.body.classList.remove('video-on');
+                iframe.src = '';
+                ytPlayer = null;
+                ytReady = false;
+                toggleBgSoundUi(false);
+                toggleBtn.textContent = 'Ambient: Off';
+                toggleBtn.classList.add('off');
+                document.getElementById('sound-hint').style.display = 'none';
+            }
+        }
+
+        function toggleBgVideo() {
+            bgVideoOn = !bgVideoOn;
+            localStorage.setItem(BG_ON_KEY, bgVideoOn);
+            applyBgVideoState();
+        }
+
+        function toggleBgSoundUi(isOn) {
+            const btn = document.getElementById('toggle-sound-btn');
+            btn.textContent = isOn ? 'Sound: On' : 'Sound: Off';
+            btn.classList.toggle('off', !isOn);
+        }
+
+        function toggleBgSound() {
+            if (!ytPlayer || !ytReady) return;
+            const muted = ytPlayer.isMuted();
+            if (muted) {
+                ytPlayer.unMute();
+                ytPlayer.setVolume(50);
+                bgSoundWanted = true;
+                localStorage.setItem(BG_SOUND_KEY, 'true');
+                toggleBgSoundUi(true);
+                document.getElementById('sound-hint').style.display = 'none';
+            } else {
+                ytPlayer.mute();
+                bgSoundWanted = false;
+                localStorage.setItem(BG_SOUND_KEY, 'false');
+                toggleBgSoundUi(false);
+            }
+        }
+
+        // YouTube IFrame API loader
+        (function loadYtApi() {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            document.head.appendChild(tag);
+        })();
+
+        window.onYouTubeIframeAPIReady = function() {
+            if (!bgVideoOn) return;
+            ytPlayer = new YT.Player('bg-video', {
+                events: {
+                    'onReady': (e) => {
+                        ytReady = true;
+                        e.target.mute();        // start muted — autoplay allowance
+                        e.target.playVideo();
+                        if (bgSoundWanted) {
+                            // show hint until the user clicks (required to unmute)
+                            document.getElementById('sound-hint').style.display = 'block';
+                        }
+                    },
+                    'onStateChange': (e) => {
+                        // YT.PlayerState.ENDED = 0; loop param should handle it, but this is a safety net
+                        if (e.data === 0) e.target.playVideo();
+                    }
+                }
+            });
+        };
+
+        // First click anywhere enables sound (if user wants it)
+        document.addEventListener('click', () => {
+            if (ytPlayer && ytReady && bgSoundWanted && ytPlayer.isMuted()) {
+                ytPlayer.unMute();
+                ytPlayer.setVolume(50);
+                toggleBgSoundUi(true);
+                document.getElementById('sound-hint').style.display = 'none';
+            }
+        }, { capture: true });
+
+        // Apply initial state
+        applyBgVideoState();
+        if (bgSoundWanted && bgVideoOn) {
+            document.getElementById('sound-hint').style.display = 'block';
+        }
+
+        // ===== Socket / game view =====
         const socket = io();
         const pill = document.getElementById('connection-pill');
         let currentCode = null;
