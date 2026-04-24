@@ -118,23 +118,32 @@
         }
 
         .grimoire-layout {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 1100px) {
+            .grimoire-layout { grid-template-columns: 1fr; }
         }
 
-        /* Circle seating area */
+        /* Circle seating area — enforce a true square via aspect-ratio so the
+           ring is always circular regardless of available width. */
+        .circle-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
         .circle-area {
-            flex: 1;
-            min-width: 350px;
-            aspect-ratio: 1;
+            width: min(900px, 85vh, 100%);
+            aspect-ratio: 1 / 1;
             position: relative;
-            background: radial-gradient(circle, rgba(30, 15, 50, 0.8) 0%, rgba(26, 13, 46, 0.9) 100%);
+            background:
+                radial-gradient(circle at 50% 50%, rgba(107, 63, 160, 0.18) 0%, rgba(30, 15, 50, 0.85) 55%, rgba(14, 11, 31, 0.95) 100%);
             border: 3px solid var(--gold-dark);
             border-radius: 50%;
-            margin: 20px auto;
-            max-width: 600px;
-            box-shadow: 0 0 40px var(--purple-glow);
+            margin: 0 auto;
+            box-shadow: 0 0 60px var(--purple-glow), inset 0 0 40px rgba(0,0,0,0.5);
         }
 
         .seat {
@@ -244,14 +253,82 @@
             color: var(--text-muted);
         }
 
+        /* Status badges on a seat token */
+        .seat-token .badges {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .seat-token .badge {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(14, 11, 31, 0.95);
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            line-height: 1;
+        }
+        .seat-token .badge.poison { top: -4px; right: -4px; border-color: #22c55e; }
+        .seat-token .badge.drunk  { bottom: -4px; right: -4px; border-color: #facc15; }
+
+        /* Seat action bar — appears when a seat is selected */
+        .seat-actions {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 14px auto 6px;
+            max-width: 720px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px var(--purple-glow);
+        }
+        .seat-actions.open { display: flex; }
+        .seat-actions .sa-label {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-right: auto;
+            align-self: center;
+        }
+        .sa-btn {
+            padding: 8px 14px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 6px;
+            background: rgba(14, 11, 31, 0.9);
+            color: var(--text);
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sa-btn:hover { border-color: var(--gold); }
+        .sa-btn.on {
+            background: rgba(232, 200, 124, 0.2);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        .sa-btn.danger { color: #fca5a5; border-color: #6b1a22; }
+        .sa-btn.danger:hover { border-color: var(--evil); }
+        .sa-btn.close { color: var(--text-muted); }
+
         /* Role tokens panel */
         .tokens-panel {
-            width: 320px;
+            width: 100%;
             background: var(--bg-card);
             border: 2px solid var(--gold-dark);
             border-radius: 12px;
             padding: 16px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 4px 20px var(--purple-glow);
         }
@@ -468,14 +545,25 @@
                     <option value="15">15</option>
                 </select>
             </label>
-            <button class="control-btn" onclick="syncFromTracker()">Sync from Tracker</button>
+            <span class="control-btn" id="sync-status" style="cursor: default; pointer-events: none;">🟢 Auto-syncing</span>
             <button class="control-btn" onclick="clearSelection()">Cancel Selection</button>
             <button class="control-btn" onclick="clearGrimoire()">Clear All</button>
         </div>
 
+        <div class="seat-actions" id="seatActions">
+            <div class="sa-label" id="saLabel">Seat</div>
+            <button class="sa-btn" id="saAlive" onclick="seatAction('alive')">Toggle Alive</button>
+            <button class="sa-btn" id="saPoison" onclick="seatAction('poison')">🧪 Poisoned</button>
+            <button class="sa-btn" id="saDrunk" onclick="seatAction('drunk')">🍺 Drunk</button>
+            <button class="sa-btn danger" onclick="seatAction('clear')">Clear Role</button>
+            <button class="sa-btn close" onclick="seatAction('close')">Close</button>
+        </div>
+
         <div class="grimoire-layout">
-            <div class="circle-area" id="circleArea">
-                <!-- Seats will be generated here -->
+            <div class="circle-wrap">
+                <div class="circle-area" id="circleArea">
+                    <!-- Seats will be generated here -->
+                </div>
             </div>
 
             <div class="tokens-panel">
@@ -623,19 +711,30 @@
             localStorage.setItem('boctGrimoireState', JSON.stringify(grimoireState));
         }
 
+        function emptySeat(i) {
+            return {
+                seatNum: i + 1,
+                role: null,
+                playerName: null,
+                team: null,
+                alive: true,
+                poisoned: false,
+                drunk: false
+            };
+        }
+
         function initSeats() {
             if (!grimoireState.seats || grimoireState.seats.length !== grimoireState.playerCount) {
                 grimoireState.seats = [];
                 for (let i = 0; i < grimoireState.playerCount; i++) {
-                    grimoireState.seats.push({
-                        seatNum: i + 1,
-                        role: null,
-                        playerName: null,
-                        team: null,
-                        alive: true
-                    });
+                    grimoireState.seats.push(emptySeat(i));
                 }
             }
+            // Backfill missing fields on older saved seats
+            grimoireState.seats.forEach((s, i) => {
+                if (typeof s.poisoned === 'undefined') s.poisoned = false;
+                if (typeof s.drunk === 'undefined') s.drunk = false;
+            });
         }
 
         function updateSeats() {
@@ -645,17 +744,8 @@
             grimoireState.seats = [];
 
             for (let i = 0; i < newCount; i++) {
-                if (oldSeats[i]) {
-                    grimoireState.seats.push(oldSeats[i]);
-                } else {
-                    grimoireState.seats.push({
-                        seatNum: i + 1,
-                        role: null,
-                        playerName: null,
-                        team: null,
-                        alive: true
-                    });
-                }
+                if (oldSeats[i]) grimoireState.seats.push(oldSeats[i]);
+                else grimoireState.seats.push(emptySeat(i));
             }
 
             clearSelection();
@@ -703,9 +793,18 @@
                 const playerLabel = seat.playerName
                     ? `<div class="seat-player-name ${seat.alive ? '' : 'dead'}">${escapeHtml(seat.playerName)}</div>`
                     : '';
+                const badges = `
+                    <div class="badges">
+                        ${seat.poisoned ? '<div class="badge poison" title="Poisoned">🧪</div>' : ''}
+                        ${seat.drunk ? '<div class="badge drunk" title="Drunk">🍺</div>' : ''}
+                    </div>
+                `;
 
                 seatEl.innerHTML = `
-                    <div class="${tokenClasses.join(' ')}">${emoji}</div>
+                    <div class="${tokenClasses.join(' ')}">
+                        ${emoji}
+                        ${badges}
+                    </div>
                     ${roleLabel}
                     ${playerLabel}
                 `;
@@ -800,6 +899,7 @@
             selectedSeatIndex = null;
             saveState();
             updateSelectionHint();
+            renderSeatActions();
             renderSeats();
             renderTokens();
         }
@@ -833,6 +933,7 @@
                 selectedSeatIndex = null;
             }
             updateSelectionHint();
+            renderSeatActions();
             renderSeats();
             renderTokens();
         }
@@ -855,9 +956,8 @@
             // If tapping the same seat that's already selected, toggle alive/dead
             if (selectedSeatIndex === seatIndex) {
                 grimoireState.seats[seatIndex].alive = !grimoireState.seats[seatIndex].alive;
-                selectedSeatIndex = null;
                 saveState();
-                updateSelectionHint();
+                renderSeatActions();
                 renderSeats();
                 return;
             }
@@ -886,6 +986,7 @@
                 selectedSeatIndex = null;
                 saveState();
                 updateSelectionHint();
+                renderSeatActions();
                 renderSeats();
                 renderTokens();
                 return;
@@ -894,6 +995,7 @@
             // Otherwise, select this seat
             selectedSeatIndex = seatIndex;
             updateSelectionHint();
+            renderSeatActions();
             renderSeats();
         }
 
@@ -901,6 +1003,49 @@
             selectedSeatIndex = null;
             selectedRole = null;
             updateSelectionHint();
+            renderSeatActions();
+            renderSeats();
+            renderTokens();
+        }
+
+        function renderSeatActions() {
+            const bar = document.getElementById('seatActions');
+            if (selectedSeatIndex === null) {
+                bar.classList.remove('open');
+                return;
+            }
+            const seat = grimoireState.seats[selectedSeatIndex];
+            bar.classList.add('open');
+            document.getElementById('saLabel').textContent =
+                (seat.playerName || seat.role || `Seat ${seat.seatNum}`);
+            document.getElementById('saAlive').textContent = seat.alive ? '💀 Mark Dead' : '❤️ Revive';
+            document.getElementById('saPoison').classList.toggle('on', !!seat.poisoned);
+            document.getElementById('saDrunk').classList.toggle('on', !!seat.drunk);
+        }
+
+        function seatAction(action) {
+            if (selectedSeatIndex === null) return;
+            const seat = grimoireState.seats[selectedSeatIndex];
+            switch (action) {
+                case 'alive':
+                    seat.alive = !seat.alive;
+                    break;
+                case 'poison':
+                    seat.poisoned = !seat.poisoned;
+                    break;
+                case 'drunk':
+                    seat.drunk = !seat.drunk;
+                    break;
+                case 'clear':
+                    seat.role = null;
+                    seat.team = null;
+                    break;
+                case 'close':
+                    clearSelection();
+                    return;
+            }
+            saveState();
+            renderSeatActions();
             renderSeats();
             renderTokens();
         }
@@ -920,38 +1065,63 @@
             }
         }
 
-        function syncFromTracker() {
-            const trackerState = localStorage.getItem('boctStorytellerState');
-            if (!trackerState) {
-                alert('No tracker data found. Open the Game Tracker first.');
-                return;
+        // Merge a tracker snapshot into the grimoire. Preserves local-only
+        // state (poisoned/drunk/seat swaps) while pulling in the latest roles,
+        // names, and alive status the narrator has set in the tracker.
+        function applyTrackerSnapshot(tracker) {
+            if (!tracker || !tracker.players) return false;
+            const prevSeats = grimoireState.seats || [];
+            const count = Math.max(tracker.players.length, 5);
+            grimoireState.playerCount = count;
+            document.getElementById('playerCount').value = count;
+            if (tracker.edition && EDITIONS[tracker.edition]) {
+                currentEdition = tracker.edition;
+                grimoireState.edition = tracker.edition;
+                document.getElementById('editionSelect').value = currentEdition;
             }
 
-            const tracker = JSON.parse(trackerState);
-            if (!tracker.players || tracker.players.length === 0) {
-                alert('No players in the tracker yet.');
-                return;
-            }
-
-            grimoireState.playerCount = Math.max(tracker.players.length, 5);
-            document.getElementById('playerCount').value = grimoireState.playerCount;
-
-            grimoireState.seats = [];
-            for (let i = 0; i < grimoireState.playerCount; i++) {
+            const newSeats = [];
+            for (let i = 0; i < count; i++) {
                 const player = tracker.players[i];
-                grimoireState.seats.push({
+                // Find existing seat (by player name if available, else by index)
+                const prev = player
+                    ? prevSeats.find(s => s.playerName && player.name && s.playerName.toLowerCase() === player.name.toLowerCase())
+                    : null;
+                newSeats.push({
                     seatNum: i + 1,
-                    role: player ? player.role || null : null,
+                    role: player ? (player.role || null) : null,
                     playerName: player ? player.name : null,
-                    team: player ? player.team || null : null,
-                    alive: player ? player.alive : true
+                    team: player ? (player.team || null) : null,
+                    alive: player ? (player.alive !== false) : true,
+                    // Preserve local-only modifiers
+                    poisoned: prev ? !!prev.poisoned : false,
+                    drunk: prev ? !!prev.drunk : false
                 });
             }
+            grimoireState.seats = newSeats;
 
-            clearSelection();
+            // Keep selection indices in-range
+            if (selectedSeatIndex !== null && selectedSeatIndex >= count) selectedSeatIndex = null;
+
             saveState();
             renderSeats();
             renderTokens();
+            renderSeatActions();
+            setSyncStatus('🟢 Auto-syncing');
+            return true;
+        }
+
+        function syncFromTrackerLocalStorage() {
+            const raw = localStorage.getItem('boctStorytellerState');
+            if (!raw) return false;
+            try {
+                return applyTrackerSnapshot(JSON.parse(raw));
+            } catch (e) { return false; }
+        }
+
+        function setSyncStatus(text) {
+            const el = document.getElementById('sync-status');
+            if (el) el.textContent = text;
         }
 
         function clearGrimoire() {
@@ -969,8 +1139,60 @@
             }
         }
 
+        // =========== Auto-sync from tracker ===========
+        // Same-origin tabs: listen for localStorage changes from the tracker.
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'boctStorytellerState' && e.newValue) {
+                try { applyTrackerSnapshot(JSON.parse(e.newValue)); } catch (_) {}
+            }
+        });
+
+        // Cross-device: connect to the narrator socket (silent auth with stored
+        // creds) and listen for peer-narrator-state. This lets the tracker on
+        // PC push changes to the grimoire on a tablet in real time.
+        (function setupSocketSync() {
+            const script = document.createElement('script');
+            script.src = '/socket.io/socket.io.js';
+            script.onload = () => {
+                const socket = io();
+                const AUTH_KEY = 'boctNarratorCreds';
+                function tryLogin() {
+                    const raw = localStorage.getItem(AUTH_KEY);
+                    if (!raw) return;
+                    try {
+                        const { user, pass } = JSON.parse(raw);
+                        socket.emit('narrator-login', { user, pass }, (resp) => {
+                            if (resp && resp.success) {
+                                const trackerRaw = localStorage.getItem('boctStorytellerState');
+                                if (trackerRaw) {
+                                    try {
+                                        const t = JSON.parse(trackerRaw);
+                                        if (t.code) {
+                                            socket.emit('rejoin-game', t.code, () => {});
+                                        }
+                                    } catch (_) {}
+                                }
+                                setSyncStatus('🟢 Live sync');
+                            } else {
+                                setSyncStatus('🟡 Local sync only (log in to tracker)');
+                            }
+                        });
+                    } catch (_) {}
+                }
+                socket.on('connect', tryLogin);
+                socket.on('peer-narrator-state', (state) => {
+                    if (state) applyTrackerSnapshot(state);
+                });
+                socket.on('disconnect', () => setSyncStatus('🟡 Offline'));
+            };
+            script.onerror = () => setSyncStatus('🟡 Local sync only');
+            document.head.appendChild(script);
+        })();
+
         // Initialize
         loadState();
+        // On load, pull the latest tracker snapshot if available
+        syncFromTrackerLocalStorage();
     </script>
 </body>
 </html>
