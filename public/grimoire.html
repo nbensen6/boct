@@ -363,7 +363,7 @@
 
         .token-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
             gap: 10px;
         }
 
@@ -374,6 +374,7 @@
             cursor: grab;
             transition: all 0.2s;
             padding: 2px;
+            min-width: 0;
         }
         .role-token:active { cursor: grabbing; }
         .role-token.dragging { opacity: 0.4; }
@@ -395,13 +396,18 @@
         .role-token .token-label {
             margin-top: 4px;
             font-family: 'Cinzel', serif;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             text-align: center;
-            line-height: 1.1;
-            letter-spacing: 0.3px;
+            line-height: 1.15;
+            letter-spacing: 0;
             color: var(--text);
-            max-width: 80px;
-            word-wrap: break-word;
+            max-width: 100%;
+            /* Break between words (e.g. "Fortune / Teller") but never split
+               a single word like "Washerwoman" — that produced ugly
+               "Washerwoma / N" wraps. */
+            overflow-wrap: normal;
+            word-break: normal;
+            hyphens: none;
         }
 
         .role-token:hover .token-circle {
