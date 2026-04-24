@@ -1316,22 +1316,26 @@
                     if (!gameState.code) return;
                     socket.emit('rejoin-game', gameState.code, (r2) => {
                         if (r2 && r2.success) {
+                            serverConfirmed = true;
                             // Pull any players that joined while our socket
                             // was disconnected (e.g. a phone player joining
                             // during a narrator wifi blip). Without this, a
                             // missed 'player-joined' event means they never
                             // show up in the narrator's roster or on the TV.
                             mergeServerPlayers(r2.players);
+                            generateQRCode();
                             saveState();
                             render();
                             // Re-broadcast so the TV & other narrator tabs
                             // catch up on anything else they missed.
                             broadcastStateToTv();
                             if (booted) refreshServerState();
-                        } else if (booted) {
+                        } else {
+                            serverConfirmed = false;
+                            generateQRCode();
                             // Server lost our game (restart/crash). Show
                             // the Restore/Start-fresh banner.
-                            refreshServerState();
+                            if (booted) refreshServerState();
                         }
                     });
                 });
@@ -1448,6 +1452,10 @@
             history: [],
             currentNomination: null
         };
+        // Tracks whether the server knows about gameState.code right now.
+        // Kept separate from gameState.code so we can still offer Restore
+        // on a lost game without showing the stale code as if it were live.
+        let serverConfirmed = false;
 
         // Load saved state
         function loadState() {
@@ -1460,6 +1468,7 @@
                 if (gameState.code) {
                     socket.emit('rejoin-game', gameState.code, (response) => {
                         if (response.success) {
+                            serverConfirmed = true;
                             // If the server has a newer snapshot than our local copy,
                             // prefer it — another narrator tab may have edits we lack.
                             if (response.snapshot) {
@@ -1479,6 +1488,8 @@
                             saveState();
                             render();
                         } else {
+                            serverConfirmed = false;
+                            generateQRCode(); // re-render code display as ----
                             // Saved code is stale. Don't wipe it locally — the
                             // banner will offer to Restore it or Start Fresh.
                             refreshServerState();
@@ -1596,10 +1607,11 @@
                 } finally {
                     suppressBroadcast = false;
                 }
+                serverConfirmed = true;
                 generateQRCode();
                 saveState();
-                render();
                 hideBanner();
+                render();
             });
         }
 
@@ -1613,8 +1625,11 @@
                 edition: currentEdition
             }, (resp) => {
                 if (resp && resp.success) {
+                    serverConfirmed = true;
+                    generateQRCode();
                     broadcastStateToTv();
                     hideBanner();
+                    render();
                 } else {
                     alert((resp && resp.error) || 'Could not restore game.');
                 }
@@ -1713,8 +1728,10 @@
                     gameState.phase = 'day';
                     gameState.dayNum = 1;
                     gameState.currentNomination = null;
+                    serverConfirmed = true;
                     generateQRCode();
                     saveState();
+                    hideBanner();
                     render();
                 }
             });
@@ -1739,31 +1756,41 @@
                 history: [],
                 currentNomination: null
             };
+            serverConfirmed = false;
             localStorage.removeItem('boctStorytellerState');
+            generateQRCode();
             createNewGame();
         }
 
         function generateQRCode() {
-            const joinUrl = `${window.location.origin}/player.html?code=${gameState.code}`;
-            const displayCode = gameState.code || '----';
+            // Only show the code if the server has confirmed this game.
+            // A stale code from localStorage shouldn't flash a "real-looking"
+            // code before the server has agreed it exists.
+            const live = !!gameState.code && serverConfirmed;
+            const displayCode = live ? gameState.code : '----';
+            const joinUrl = live
+                ? `${window.location.origin}/player.html?code=${gameState.code}`
+                : `${window.location.origin}/player.html`;
 
-            // Update all code displays
             document.getElementById('game-code-display').textContent = displayCode;
-            document.getElementById('modal-game-code').textContent = displayCode;
-            document.getElementById('join-url').textContent = `${window.location.origin}/player.html`;
+            const modalCode = document.getElementById('modal-game-code');
+            if (modalCode) modalCode.textContent = displayCode;
+            const joinUrlEl = document.getElementById('join-url');
+            if (joinUrlEl) joinUrlEl.textContent = `${window.location.origin}/player.html`;
 
-            if (gameState.code) {
-                // Use QRious library to generate QR code locally
+            if (live) {
                 const qrImg = document.getElementById('qr-code-img');
-                const qr = new QRious({
-                    value: joinUrl,
-                    size: 250,
-                    level: 'M',
-                    background: 'white',
-                    foreground: 'black'
-                });
-                qrImg.src = qr.toDataURL();
-                qrImg.style.display = 'block';
+                if (qrImg) {
+                    const qr = new QRious({
+                        value: joinUrl,
+                        size: 250,
+                        level: 'M',
+                        background: 'white',
+                        foreground: 'black'
+                    });
+                    qrImg.src = qr.toDataURL();
+                    qrImg.style.display = 'block';
+                }
             }
         }
 
