@@ -774,6 +774,116 @@
             return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
         }
 
+        // ========== Custom touch-drag (faster than native HTML5 DnD on mobile) ==========
+        // Browsers' native mobile drag on draggable="true" requires a ~500ms hold.
+        // This helper lowers that to ~150ms and cancels if the user starts
+        // scrolling (moves > 8px before the hold timer fires).
+        //
+        //   enableTouchDrag(el, {
+        //     getPayload: el => ({ kind, value }),
+        //     dropSelector: '.ww-slot, #freeform-notes',
+        //     onDrop: (target, payload) => { ... }
+        //   });
+        function enableTouchDrag(el, opts) {
+            const HOLD_MS = 150;
+            const MOVE_CANCEL_PX = 8;
+
+            let holdTimer = null;
+            let dragging = false;
+            let ghost = null;
+            let lastTarget = null;
+            let startX = 0, startY = 0;
+            let activePointerId = null;
+
+            function cleanup() {
+                if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+                if (ghost) { ghost.remove(); ghost = null; }
+                if (lastTarget) { lastTarget.classList.remove('drop-hover'); lastTarget = null; }
+                dragging = false;
+                activePointerId = null;
+            }
+
+            function createGhost(x, y) {
+                ghost = el.cloneNode(true);
+                // Strip classes that might have handlers; strip attributes that could re-bind listeners
+                ghost.style.position = 'fixed';
+                ghost.style.pointerEvents = 'none';
+                ghost.style.zIndex = '10000';
+                ghost.style.margin = '0';
+                ghost.style.left = (x - el.offsetWidth / 2) + 'px';
+                ghost.style.top = (y - el.offsetHeight / 2) + 'px';
+                ghost.style.width = el.offsetWidth + 'px';
+                ghost.style.opacity = '0.9';
+                ghost.style.transform = 'scale(1.15)';
+                ghost.style.filter = 'drop-shadow(0 0 16px rgba(232, 200, 124, 0.7))';
+                ghost.style.transition = 'none';
+                document.body.appendChild(ghost);
+            }
+
+            function updateDropTarget(x, y) {
+                if (ghost) ghost.style.visibility = 'hidden';
+                const under = document.elementFromPoint(x, y);
+                if (ghost) ghost.style.visibility = '';
+                const target = under ? under.closest(opts.dropSelector) : null;
+                if (target !== lastTarget) {
+                    if (lastTarget) lastTarget.classList.remove('drop-hover');
+                    if (target) target.classList.add('drop-hover');
+                    lastTarget = target;
+                }
+            }
+
+            el.addEventListener('pointerdown', (e) => {
+                if (e.pointerType === 'mouse') return; // let native DnD handle mouse
+                if (activePointerId !== null) return;  // ignore multi-touch
+                activePointerId = e.pointerId;
+                startX = e.clientX;
+                startY = e.clientY;
+                dragging = false;
+
+                holdTimer = setTimeout(() => {
+                    holdTimer = null;
+                    dragging = true;
+                    createGhost(startX, startY);
+                    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (_) {} }
+                    try { el.setPointerCapture(activePointerId); } catch (_) {}
+                }, HOLD_MS);
+            });
+
+            el.addEventListener('pointermove', (e) => {
+                if (e.pointerId !== activePointerId) return;
+
+                if (!dragging) {
+                    // In the "deciding" window: if the user moves more than
+                    // a few px, they're probably trying to scroll — cancel.
+                    const dx = Math.abs(e.clientX - startX);
+                    const dy = Math.abs(e.clientY - startY);
+                    if (dx > MOVE_CANCEL_PX || dy > MOVE_CANCEL_PX) {
+                        cleanup();
+                    }
+                    return;
+                }
+
+                // Dragging — block scroll and follow the finger
+                e.preventDefault();
+                ghost.style.left = (e.clientX - el.offsetWidth / 2) + 'px';
+                ghost.style.top = (e.clientY - el.offsetHeight / 2) + 'px';
+                updateDropTarget(e.clientX, e.clientY);
+            }, { passive: false });
+
+            el.addEventListener('pointerup', (e) => {
+                if (e.pointerId !== activePointerId) return;
+                if (dragging && lastTarget && opts.onDrop) {
+                    const payload = opts.getPayload ? opts.getPayload(el) : null;
+                    opts.onDrop(lastTarget, payload);
+                }
+                cleanup();
+            });
+            el.addEventListener('pointercancel', (e) => {
+                if (e.pointerId !== activePointerId) return;
+                cleanup();
+            });
+        }
+
         function toggleNotes() {
             notesOpen = !notesOpen;
             document.getElementById('notes-panel').classList.toggle('open', notesOpen);
@@ -818,6 +928,23 @@
                     e.dataTransfer.setData('text/plain', role);
                     e.dataTransfer.effectAllowed = 'copy';
                 });
+                // Touch/pen fast-drag (role → ww-slot assignment or notes insert)
+                enableTouchDrag(el, {
+                    getPayload: () => ({ role }),
+                    dropSelector: '.ww-slot, #freeform-notes',
+                    onDrop: (target, { role }) => {
+                        if (target.id === 'freeform-notes') {
+                            insertIntoNotes(role);
+                        } else {
+                            const name = target.dataset.name;
+                            if (name) {
+                                myNotes.guesses[name] = role;
+                                saveMyNotes();
+                                renderWhoswho();
+                            }
+                        }
+                    }
+                });
             });
         }
 
@@ -844,6 +971,12 @@
                 });
                 // Tap to insert into notes
                 el.addEventListener('click', () => insertIntoNotes(name));
+                // Touch fast-drag (name → notes insert)
+                enableTouchDrag(el, {
+                    getPayload: () => ({ name }),
+                    dropSelector: '#freeform-notes',
+                    onDrop: (target, { name }) => { insertIntoNotes(name); }
+                });
             });
         }
 
