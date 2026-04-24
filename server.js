@@ -642,7 +642,10 @@ io.on('connection', (socket) => {
     //   - all OTHER narrator tabs in the same game (`peer-narrator-state`)
     //   - all players in the game room, sanitized (`game-roster-update`)
     socket.on('narrator-state-update', (state) => {
-        if (!socket.isStoryteller || !socket.narratorAuthed) return;
+        if (!socket.isStoryteller || !socket.narratorAuthed) {
+            console.log(`narrator-state-update rejected (socket=${socket.id} authed=${!!socket.narratorAuthed} isStoryteller=${!!socket.isStoryteller})`);
+            return;
+        }
         if (state && state.code && games.has(state.code)) {
             const game = games.get(state.code);
             activeGameCode = state.code;

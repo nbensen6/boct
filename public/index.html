@@ -1229,15 +1229,31 @@
             }
         }
 
-        // Re-auth automatically after any reconnect (sockets lose auth flag on disconnect)
+        // Re-auth + re-rejoin automatically after any reconnect.
+        //
+        // Sockets lose both auth AND storyteller-room membership on disconnect.
+        // If we only re-auth, narratorAuthed=true but isStoryteller=false, so
+        // every narrator-state-update the server receives from us is rejected
+        // silently — the TV never hears about state changes. We must also
+        // re-emit rejoin-game so the server re-adds us to the storyteller set.
         socket.on('connect', () => {
             const saved = localStorage.getItem(AUTH_KEY);
-            if (saved) {
-                try {
-                    const { user, pass } = JSON.parse(saved);
-                    socket.emit('narrator-login', { user, pass }, () => {});
-                } catch (e) {}
-            }
+            if (!saved) return;
+            try {
+                const { user, pass } = JSON.parse(saved);
+                socket.emit('narrator-login', { user, pass }, (resp) => {
+                    if (!resp || !resp.success) return;
+                    if (!gameState.code) return;
+                    socket.emit('rejoin-game', gameState.code, (r2) => {
+                        if (r2 && r2.success) {
+                            // Re-broadcast our current state so the TV and any
+                            // other narrator tabs catch up on anything they
+                            // may have missed during the disconnect.
+                            broadcastStateToTv();
+                        }
+                    });
+                });
+            } catch (e) {}
         });
 
         const EDITIONS = {
