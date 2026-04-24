@@ -14,16 +14,18 @@
         }
 
         :root {
-            --bg-dark: #0d0d0d;
-            --bg-card: rgba(20, 15, 15, 0.95);
-            --accent: #8b0000;
-            --accent-light: #c41e3a;
-            --gold: #d4af37;
-            --gold-dark: #996515;
-            --text: #e8e4d9;
-            --text-muted: #888;
+            --bg-dark: #0e0b1f;
+            --bg-card: rgba(20, 14, 36, 0.96);
+            --accent: #6b3fa0;
+            --accent-light: #9b59b6;
+            --gold: #e8c87c;
+            --gold-dark: #8a6b2a;
+            --text: #f1ead5;
+            --text-muted: #9f96b8;
             --good: #4a9eff;
             --evil: #c41e3a;
+            --blood: #8b0e1e;
+            --purple-glow: rgba(107, 63, 160, 0.5);
         }
 
         body {
@@ -46,11 +48,11 @@
             right: 0;
             bottom: 0;
             background:
-                radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
-                radial-gradient(ellipse 60px 100px at 50% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
-                radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
-                radial-gradient(ellipse 300px 300px at 85% 15%, rgba(200, 200, 180, 0.1) 0%, transparent 60%),
-                linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
+                linear-gradient(to bottom, rgba(26, 13, 46, 0.3) 0%, rgba(26, 13, 46, 0.7) 100%),
+                url('/assets/Background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             z-index: -1;
         }
 
@@ -66,7 +68,15 @@
             border-radius: 16px;
             padding: 30px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px var(--purple-glow);
+        }
+
+        .header-logo {
+            display: block;
+            max-width: 280px;
+            height: auto;
+            margin: 0 auto 20px;
+            filter: drop-shadow(0 0 15px var(--purple-glow));
         }
 
         .clock-icon {
@@ -76,8 +86,8 @@
             border: 3px solid var(--gold);
             border-radius: 50%;
             position: relative;
-            background: radial-gradient(circle, rgba(20, 15, 15, 0.9) 0%, rgba(10, 5, 5, 1) 100%);
-            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5), inset 0 0 15px rgba(0,0,0,0.5);
+            background: radial-gradient(circle, rgba(30, 15, 50, 0.9) 0%, rgba(26, 13, 46, 1) 100%);
+            box-shadow: 0 0 30px var(--purple-glow), inset 0 0 15px rgba(0,0,0,0.5);
         }
 
         .clock-icon::before {
@@ -144,7 +154,7 @@
             padding: 14px;
             border: 2px solid var(--gold-dark);
             border-radius: 8px;
-            background: rgba(30, 20, 20, 0.9);
+            background: rgba(30, 15, 50, 0.9);
             color: var(--text);
             font-family: 'Crimson Text', serif;
             font-size: 1.1rem;
@@ -185,7 +195,7 @@
         }
 
         .join-btn:hover {
-            box-shadow: 0 0 25px rgba(196, 30, 58, 0.6);
+            box-shadow: 0 0 25px var(--purple-glow);
             transform: translateY(-2px);
         }
 
@@ -196,9 +206,9 @@
         }
 
         .error {
-            color: var(--accent-light);
+            color: #c41e3a;
             background: rgba(139, 0, 0, 0.2);
-            border: 1px solid var(--accent);
+            border: 1px solid #8b0000;
             border-radius: 6px;
             padding: 10px;
             margin-top: 10px;
@@ -244,7 +254,7 @@
         }
 
         .role-card {
-            background: rgba(30, 20, 20, 0.9);
+            background: rgba(30, 15, 50, 0.9);
             border: 3px solid var(--gold-dark);
             border-radius: 12px;
             padding: 24px;
@@ -332,7 +342,7 @@
         .phase-display {
             margin-top: 20px;
             padding: 12px;
-            background: rgba(30, 20, 20, 0.8);
+            background: rgba(30, 15, 50, 0.8);
             border-radius: 8px;
         }
 
@@ -365,7 +375,7 @@
 
         /* Keep secret reminder */
         .secret-reminder {
-            background: rgba(139, 0, 0, 0.2);
+            background: rgba(107, 63, 160, 0.2);
             border: 1px solid var(--accent);
             border-radius: 8px;
             padding: 12px;
@@ -406,8 +416,7 @@
     <div class="container">
         <!-- Join Form -->
         <div class="card" id="join-form">
-            <div class="clock-icon"></div>
-            <h1>Blood on the Clocktower</h1>
+            <img src="/assets/clocktower.jpg" alt="Blood on the Clocktower" class="header-logo">
             <p class="subtitle">Enter the game code to join</p>
 
             <div class="input-group">
@@ -427,7 +436,7 @@
 
         <!-- Waiting Screen -->
         <div class="card" id="waiting-screen">
-            <div class="clock-icon"></div>
+            <img src="/assets/logoboct.jpg" alt="Blood on the Clocktower" class="header-logo" style="max-width: 120px; border-radius: 50%;">
             <h1>Welcome, Villager</h1>
             <div class="player-name-display" id="display-name"></div>
             <p class="waiting-message">

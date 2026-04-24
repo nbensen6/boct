@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ravenswood Bluff — TV Display</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-dark: #0e0b1f;
+            --bg-deeper: #07060f;
+            --bg-card: rgba(20, 14, 36, 0.94);
+            --accent: #6b3fa0;
+            --accent-light: #9b59b6;
+            --gold: #e8c87c;
+            --gold-dark: #8a6b2a;
+            --text: #f1ead5;
+            --text-muted: #9f96b8;
+            --good: #4a9eff;
+            --evil: #c41e3a;
+            --dead: #3d3d5c;
+            --blood: #8b0e1e;
+            --purple-glow: rgba(107, 63, 160, 0.5);
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Crimson Text', Georgia, serif;
+            color: var(--text);
+            background: var(--bg-dark);
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at top, rgba(107, 63, 160, 0.25), transparent 60%),
+                linear-gradient(to bottom, rgba(14, 11, 31, 0.55), rgba(7, 6, 15, 0.95)),
+                url('/assets/Background.jpg') center/cover no-repeat;
+            z-index: -1;
+        }
+
+        /* ---------- SHARED TITLE BAR ---------- */
+        .title-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 36px;
+            background: linear-gradient(to bottom, rgba(7, 6, 15, 0.9), rgba(7, 6, 15, 0.2));
+            border-bottom: 1px solid var(--gold-dark);
+            z-index: 10;
+        }
+        .title-bar h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            color: var(--gold);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 18px rgba(232, 200, 124, 0.35), 2px 2px 6px #000;
+            font-weight: 900;
+        }
+        .title-bar .clock-flair {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .connection-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--gold-dark);
+            background: rgba(20, 14, 36, 0.6);
+            font-size: 0.75rem;
+        }
+        .connection-pill.offline { color: #ff6b7a; border-color: #6b1a22; }
+
+        /* ---------- QR SPLASH (no active game) ---------- */
+        #splash {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 100px 40px 60px;
+        }
+        .splash-inner {
+            display: flex;
+            align-items: center;
+            gap: 70px;
+            max-width: 1600px;
+        }
+        .splash-left h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 3.6rem;
+            color: var(--gold);
+            letter-spacing: 6px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(107, 63, 160, 0.7), 3px 3px 10px #000;
+            font-weight: 900;
+        }
+        .splash-left .tag {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 30px;
+            max-width: 620px;
+            line-height: 1.5;
+        }
+        .splash-left .how-to {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .splash-left ol {
+            list-style: none;
+            counter-reset: step;
+            max-width: 560px;
+        }
+        .splash-left ol li {
+            counter-increment: step;
+            padding: 10px 0 10px 56px;
+            position: relative;
+            font-size: 1.2rem;
+            color: var(--text);
+            border-bottom: 1px solid rgba(232, 200, 124, 0.15);
+        }
+        .splash-left ol li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-weight: bold;
+            background: rgba(20, 14, 36, 0.8);
+            box-shadow: 0 0 18px var(--purple-glow);
+        }
+        .splash-right {
+            text-align: center;
+        }
+        .qr-frame {
+            background: #f7f1df;
+            padding: 28px;
+            border-radius: 20px;
+            border: 4px solid var(--gold);
+            box-shadow: 0 0 80px rgba(232, 200, 124, 0.35), 0 20px 60px rgba(0,0,0,0.7);
+            display: inline-block;
+        }
+        .qr-frame img {
+            display: block;
+            width: 420px;
+            height: 420px;
+        }
+        .qr-caption {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: var(--gold);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 24px;
+        }
+        .qr-code-text {
+            font-family: 'Cinzel', serif;
+            font-size: 3.2rem;
+            color: var(--gold);
+            letter-spacing: 18px;
+            margin-top: 8px;
+            text-shadow: 0 0 24px rgba(232, 200, 124, 0.5);
+        }
+        .qr-url {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-top: 14px;
+            letter-spacing: 1px;
+        }
+
+        /* ---------- GAME VIEW ---------- */
+        #game-view {
+            display: none;
+            height: 100vh;
+            padding: 80px 36px 24px;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .phase-hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 28px;
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 14px;
+            box-shadow: 0 6px 30px var(--purple-glow);
+        }
+        .phase-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .phase-badge {
+            font-family: 'Cinzel', serif;
+            font-size: 2.4rem;
+            letter-spacing: 6px;
+            padding: 10px 28px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+        .phase-badge.day {
+            background: linear-gradient(135deg, #fbbf24, #b8811a);
+            color: #201404;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+        }
+        .phase-badge.night {
+            background: linear-gradient(135deg, #1e3a5f, #0a1428);
+            color: #bfdbfe;
+            border: 1px solid #3b82f6;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+        .day-number {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            color: var(--gold);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        .phase-right {
+            display: flex;
+            gap: 36px;
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .phase-right .stat .n {
+            display: block;
+            font-size: 2rem;
+            color: var(--gold);
+            font-weight: bold;
+            letter-spacing: 0;
+        }
+        .phase-right .stat.alive .n { color: #86efac; }
+        .phase-right .stat.dead .n { color: #fca5a5; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+            flex: 1;
+            min-height: 0;
+        }
+        .players-panel, .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 0;
+        }
+        .panel {
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: 0 6px 30px var(--purple-glow);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .panel h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gold-dark);
+        }
+        .players-list {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 10px;
+            padding-right: 6px;
+        }
+        .p-tile {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(14, 11, 31, 0.85);
+            border: 1px solid var(--gold-dark);
+            border-left: 5px solid var(--gold-dark);
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+        }
+        .p-tile.alive { border-left-color: #86efac; }
+        .p-tile.dead {
+            border-left-color: var(--evil);
+            opacity: 0.55;
+        }
+        .p-tile.dead .p-name {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .p-name {
+            color: var(--text);
+            letter-spacing: 1px;
+        }
+        .p-status {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .p-tile.alive .p-status { color: #86efac; }
+        .p-tile.dead .p-status { color: #fca5a5; }
+
+        /* Current nomination */
+        .nomination-hero {
+            text-align: center;
+            padding: 18px;
+            background: linear-gradient(135deg, rgba(139, 14, 30, 0.35), rgba(14, 11, 31, 0.85));
+            border: 2px solid var(--blood);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(139, 14, 30, 0.3);
+        }
+        .nomination-hero .label {
+            font-family: 'Cinzel', serif;
+            color: #fca5a5;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .nomination-hero .pair {
+            font-family: 'Cinzel', serif;
+            color: var(--text);
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+        }
+        .nomination-hero .pair .arrow {
+            color: var(--blood);
+            margin: 0 10px;
+            font-weight: bold;
+        }
+        .nomination-hero .pair .nominee {
+            color: var(--gold);
+        }
+        .nomination-hero .votes {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            color: var(--gold);
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+        .nomination-hero .votes small {
+            font-size: 1rem;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            display: block;
+            margin-top: -6px;
+        }
+        .nomination-empty {
+            color: var(--text-muted);
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Chronicle */
+        .chronicle-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .chron-item {
+            padding: 10px 12px;
+            background: rgba(14, 11, 31, 0.7);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            border-left: 3px solid var(--gold-dark);
+        }
+        .chron-item.execution {
+            border-left-color: var(--blood);
+            background: rgba(139, 14, 30, 0.15);
+        }
+        .chron-item .day-label {
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* Mini-QR that stays visible during game so latecomers can still join */
+        .mini-qr {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 12px;
+            background: rgba(14, 11, 31, 0.75);
+            border: 1px solid var(--gold-dark);
+            border-radius: 10px;
+        }
+        .mini-qr img {
+            width: 120px;
+            height: 120px;
+            background: #f7f1df;
+            padding: 6px;
+            border-radius: 6px;
+        }
+        .mini-qr-info {
+            font-family: 'Cinzel', serif;
+        }
+        .mini-qr-info .m-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .mini-qr-info .m-code {
+            color: var(--gold);
+            font-size: 2.4rem;
+            letter-spacing: 8px;
+            line-height: 1.1;
+        }
+        .mini-qr-info .m-url {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 4px; }
+
+        @media (max-width: 1100px) {
+            .splash-inner { flex-direction: column; gap: 30px; }
+            .content-grid { grid-template-columns: 1fr; }
+            .splash-left h2 { font-size: 2.4rem; }
+            .qr-frame img { width: 300px; height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <h1>Ravenswood Bluff</h1>
+        <div class="clock-flair">
+            <span>Blood on the Clocktower</span>
+            <span class="connection-pill" id="connection-pill">Connecting…</span>
+        </div>
+    </div>
+
+    <!-- Splash: shown when no active game -->
+    <div id="splash">
+        <div class="splash-inner">
+            <div class="splash-left">
+                <h2>Join the Village</h2>
+                <p class="tag">"Evil lurks in the shadows of the clocktower. The town must find it — before it finds them."</p>
+                <div class="how-to">How to Join</div>
+                <ol>
+                    <li>Scan the QR code with your phone camera</li>
+                    <li>Tap the link that appears</li>
+                    <li>Enter your name and wait for your role</li>
+                </ol>
+            </div>
+            <div class="splash-right">
+                <div class="qr-frame">
+                    <img id="splash-qr" alt="Join QR">
+                </div>
+                <div class="qr-caption">Game Code</div>
+                <div class="qr-code-text" id="splash-code">----</div>
+                <div class="qr-url" id="splash-url"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game view: shown when narrator creates / is running a game -->
+    <div id="game-view">
+        <div class="phase-hero">
+            <div class="phase-left">
+                <div class="phase-badge day" id="phase-badge">Day</div>
+                <div class="day-number" id="day-number">Day 1</div>
+            </div>
+            <div class="phase-right">
+                <div class="stat alive"><span class="n" id="stat-alive">0</span>Alive</div>
+                <div class="stat dead"><span class="n" id="stat-dead">0</span>Dead</div>
+                <div class="stat"><span class="n" id="stat-total">0</span>Total</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="players-panel">
+                <div class="panel" style="flex: 1;">
+                    <h2>Villagers</h2>
+                    <div class="players-list" id="players-list"></div>
+                </div>
+            </div>
+            <div class="side-panel">
+                <div class="panel" style="flex: 0 0 auto;">
+                    <h2>Current Nomination</h2>
+                    <div id="nom-zone">
+                        <div class="nomination-empty">No nomination in progress.</div>
+                    </div>
+                </div>
+                <div class="panel" style="flex: 1; min-height: 160px;">
+                    <h2>Chronicle</h2>
+                    <div class="chronicle-list" id="chronicle-list">
+                        <div class="nomination-empty">The day is young…</div>
+                    </div>
+                </div>
+                <div class="mini-qr" id="mini-qr">
+                    <img id="mini-qr-img" alt="Join QR">
+                    <div class="mini-qr-info">
+                        <div class="m-label">Latecomers — Scan to Join</div>
+                        <div class="m-code" id="mini-code">----</div>
+                        <div class="m-url" id="mini-url"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script>
+        const socket = io();
+        const pill = document.getElementById('connection-pill');
+        let currentCode = null;
+
+        socket.on('connect', () => {
+            pill.textContent = 'Live';
+            pill.classList.remove('offline');
+            socket.emit('tv-join', (resp) => {
+                if (resp && resp.active) {
+                    currentCode = resp.code;
+                    if (resp.state) {
+                        showGameView(resp.state);
+                    } else {
+                        // Game exists but no snapshot yet — show splash with code
+                        showSplashWithCode(resp.code);
+                    }
+                } else {
+                    showSplash();
+                }
+            });
+        });
+
+        socket.on('disconnect', () => {
+            pill.textContent = 'Reconnecting…';
+            pill.classList.add('offline');
+        });
+
+        socket.on('active-game-changed', (data) => {
+            if (data.code) {
+                currentCode = data.code;
+                showSplashWithCode(data.code);
+            } else {
+                currentCode = null;
+                showSplash();
+            }
+        });
+
+        socket.on('tv-state-update', (state) => {
+            if (!state) return;
+            currentCode = state.code;
+            showGameView(state);
+        });
+
+        function buildJoinUrl(code) {
+            return `${window.location.origin}/player.html?code=${code}`;
+        }
+
+        function renderQr(imgEl, code, size) {
+            const qr = new QRious({
+                value: buildJoinUrl(code),
+                size,
+                level: 'M',
+                background: '#f7f1df',
+                foreground: '#1a0d2e'
+            });
+            imgEl.src = qr.toDataURL();
+        }
+
+        function showSplash() {
+            document.getElementById('splash').style.display = 'flex';
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('splash-code').textContent = '----';
+            document.getElementById('splash-url').textContent = `${window.location.origin}/player.html`;
+            // Blank QR
+            document.getElementById('splash-qr').src = '';
+        }
+
+        function showSplashWithCode(code) {
+            document.getElementById('splash').style.display = 'flex';
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('splash-code').textContent = code;
+            document.getElementById('splash-url').textContent = buildJoinUrl(code);
+            renderQr(document.getElementById('splash-qr'), code, 420);
+        }
+
+        function showGameView(state) {
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+
+            // Phase
+            const phase = state.phase || 'day';
+            const phaseEl = document.getElementById('phase-badge');
+            phaseEl.textContent = phase === 'day' ? 'Day' : 'Night';
+            phaseEl.className = 'phase-badge ' + phase;
+            document.getElementById('day-number').textContent =
+                (phase === 'day' ? 'Day ' : 'Night ') + (state.dayNum || 1);
+
+            // Stats
+            const players = state.players || [];
+            const alive = players.filter(p => p.alive).length;
+            const dead = players.filter(p => !p.alive).length;
+            document.getElementById('stat-alive').textContent = alive;
+            document.getElementById('stat-dead').textContent = dead;
+            document.getElementById('stat-total').textContent = players.length;
+
+            // Players
+            const listEl = document.getElementById('players-list');
+            if (players.length === 0) {
+                listEl.innerHTML = '<div class="nomination-empty" style="grid-column: 1/-1;">No players yet — scan the QR code to join.</div>';
+            } else {
+                listEl.innerHTML = players.map(p => `
+                    <div class="p-tile ${p.alive ? 'alive' : 'dead'}">
+                        <span class="p-name">${escapeHtml(p.name)}</span>
+                        <span class="p-status">${p.alive ? 'Alive' : 'Dead'}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Nomination
+            const nomZone = document.getElementById('nom-zone');
+            const nom = state.currentNomination;
+            if (nom) {
+                nomZone.innerHTML = `
+                    <div class="nomination-hero">
+                        <div class="label">${escapeHtml(nom.nominator)} nominates</div>
+                        <div class="pair"><span>${escapeHtml(nom.nominator)}</span><span class="arrow">→</span><span class="nominee">${escapeHtml(nom.nominee)}</span></div>
+                        <div class="votes">${nom.votes || 0}<small>Votes</small></div>
+                    </div>
+                `;
+            } else {
+                nomZone.innerHTML = '<div class="nomination-empty">No nomination in progress.</div>';
+            }
+
+            // Chronicle
+            const chronEl = document.getElementById('chronicle-list');
+            const hist = state.history || [];
+            if (hist.length === 0) {
+                chronEl.innerHTML = '<div class="nomination-empty">The day is young…</div>';
+            } else {
+                chronEl.innerHTML = hist.slice(0, 12).map(h => `
+                    <div class="chron-item ${h.type || ''}">
+                        <span class="day-label">Day ${h.day}:</span> ${escapeHtml(h.text)}
+                    </div>
+                `).join('');
+            }
+
+            // Mini QR
+            if (state.code) {
+                renderQr(document.getElementById('mini-qr-img'), state.code, 120);
+                document.getElementById('mini-code').textContent = state.code;
+                document.getElementById('mini-url').textContent = buildJoinUrl(state.code);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

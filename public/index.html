@@ -14,18 +14,21 @@
         }
 
         :root {
-            --bg-dark: #0d0d0d;
-            --bg-card: rgba(20, 15, 15, 0.9);
-            --accent: #8b0000;
-            --accent-light: #c41e3a;
-            --gold: #d4af37;
-            --gold-dark: #996515;
-            --text: #e8e4d9;
-            --text-muted: #888;
+            --bg-dark: #0e0b1f;
+            --bg-deeper: #07060f;
+            --bg-card: rgba(20, 14, 36, 0.94);
+            --accent: #6b3fa0;
+            --accent-light: #9b59b6;
+            --gold: #e8c87c;
+            --gold-dark: #8a6b2a;
+            --text: #f1ead5;
+            --text-muted: #9f96b8;
             --good: #4a9eff;
             --evil: #c41e3a;
-            --dead: #444;
+            --dead: #3d3d5c;
             --parchment: #d4c5a9;
+            --purple-glow: rgba(107, 63, 160, 0.5);
+            --blood: #8b0e1e;
         }
 
         body {
@@ -46,14 +49,11 @@
             right: 0;
             bottom: 0;
             background:
-                radial-gradient(ellipse 80px 120px at 10% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
-                radial-gradient(ellipse 60px 100px at 30% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
-                radial-gradient(ellipse 70px 90px at 55% 0%, rgba(139, 0, 0, 0.35) 0%, transparent 70%),
-                radial-gradient(ellipse 50px 80px at 75% 0%, rgba(139, 0, 0, 0.3) 0%, transparent 70%),
-                radial-gradient(ellipse 90px 130px at 90% 0%, rgba(139, 0, 0, 0.4) 0%, transparent 70%),
-                radial-gradient(ellipse 300px 300px at 85% 15%, rgba(200, 200, 180, 0.1) 0%, transparent 60%),
-                linear-gradient(to top, rgba(50, 40, 40, 0.8) 0%, transparent 30%),
-                linear-gradient(to bottom, #1a0a0a 0%, #0d0d0d 50%, #0a0505 100%);
+                linear-gradient(to bottom, rgba(26, 13, 46, 0.3) 0%, rgba(26, 13, 46, 0.7) 100%),
+                url('/assets/Background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             z-index: -2;
         }
 
@@ -62,17 +62,15 @@
             position: fixed;
             bottom: 0;
             right: 5%;
-            width: 200px;
-            height: 400px;
-            background: linear-gradient(to top, #0a0505 0%, #0a0505 60%, transparent 60%);
-            clip-path: polygon(
-                30% 100%, 30% 40%, 20% 40%, 20% 35%, 35% 35%, 35% 25%,
-                40% 25%, 40% 15%, 45% 15%, 45% 5%, 50% 0%, 55% 5%,
-                55% 15%, 60% 15%, 60% 25%, 65% 25%, 65% 35%, 80% 35%,
-                80% 40%, 70% 40%, 70% 100%
-            );
+            width: 150px;
+            height: 200px;
+            background: url('/assets/Blood-on-the-Clocktower2.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom right;
             z-index: -1;
-            opacity: 0.6;
+            opacity: 0.15;
+            pointer-events: none;
         }
 
         .container {
@@ -85,12 +83,15 @@
         .nav {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 20px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
-            padding: 12px;
-            background: linear-gradient(135deg, rgba(139, 0, 0, 0.3), rgba(20, 15, 15, 0.9));
+            padding: 12px 18px;
+            background: linear-gradient(135deg, rgba(107, 63, 160, 0.25), rgba(20, 14, 36, 0.95));
             border: 1px solid var(--gold-dark);
             border-radius: 8px;
+            box-shadow: 0 4px 20px var(--purple-glow);
         }
 
         .nav a {
@@ -113,10 +114,33 @@
             text-align: center;
             font-family: 'Cinzel', serif;
             color: var(--gold);
-            font-size: 2rem;
+            font-size: 2.6rem;
+            font-weight: 900;
             margin: 0 0 8px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(139, 0, 0, 0.5);
-            letter-spacing: 2px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.85), 0 0 28px var(--purple-glow);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+        }
+
+        .site-title {
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin: 24px 0 4px;
+            text-shadow: 0 0 30px rgba(107, 63, 160, 0.6), 3px 3px 8px #000;
+            position: relative;
+        }
+        .site-title::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--gold), transparent);
+            margin: 10px auto 0;
         }
 
         .subtitle {
@@ -127,6 +151,14 @@
             font-size: 1.1rem;
         }
 
+        .header-logo {
+            display: block;
+            max-width: 350px;
+            height: auto;
+            margin: 0 auto 16px;
+            filter: drop-shadow(0 0 20px var(--purple-glow));
+        }
+
         .clock-icon {
             width: 60px;
             height: 60px;
@@ -134,8 +166,8 @@
             border: 3px solid var(--gold);
             border-radius: 50%;
             position: relative;
-            background: radial-gradient(circle, rgba(20, 15, 15, 0.9) 0%, rgba(10, 5, 5, 1) 100%);
-            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5), inset 0 0 10px rgba(0,0,0,0.5);
+            background: radial-gradient(circle, rgba(30, 15, 50, 0.9) 0%, rgba(26, 13, 46, 1) 100%);
+            box-shadow: 0 0 20px var(--purple-glow), inset 0 0 10px rgba(0,0,0,0.5);
         }
 
         .clock-icon::before {
@@ -174,7 +206,7 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px var(--purple-glow);
         }
 
         .join-info {
@@ -243,13 +275,13 @@
         }
 
         .new-game-btn {
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            border-color: var(--accent-light);
-            color: white;
+            background: linear-gradient(135deg, var(--blood), #5a0812);
+            border-color: var(--blood);
+            color: var(--text);
         }
 
         .new-game-btn:hover {
-            box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+            box-shadow: 0 0 20px rgba(139, 14, 30, 0.6);
         }
 
         /* QR Modal */
@@ -348,7 +380,7 @@
             background: var(--bg-card);
             border: 1px solid var(--gold-dark);
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px var(--purple-glow);
         }
 
         .phase-btn {
@@ -397,7 +429,7 @@
         }
 
         .day-nav-btn {
-            background: rgba(139, 0, 0, 0.3);
+            background: rgba(107, 63, 160, 0.3);
             border: 2px solid var(--gold-dark);
             color: var(--gold);
             width: 32px;
@@ -412,7 +444,7 @@
         }
 
         .day-nav-btn:hover {
-            background: rgba(139, 0, 0, 0.5);
+            background: rgba(107, 63, 160, 0.5);
             border-color: var(--gold);
         }
 
@@ -426,7 +458,7 @@
             border: 2px solid var(--gold-dark);
             border-radius: 12px;
             margin-bottom: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px var(--purple-glow);
         }
 
         .stat {
@@ -465,28 +497,28 @@
             border: 2px solid var(--gold-dark);
             border-left-width: 5px;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 15px var(--purple-glow);
             position: relative;
         }
 
         .player-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 6px 25px var(--purple-glow);
         }
 
         .player-card.good {
             border-left-color: var(--good);
-            box-shadow: 0 4px 15px rgba(74, 158, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(74, 158, 255, 0.3);
         }
 
         .player-card.evil {
             border-left-color: var(--evil);
-            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.2);
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
         }
 
         .player-card.dead {
             opacity: 0.6;
-            background: rgba(10, 5, 5, 0.95);
+            background: rgba(20, 10, 35, 0.95);
             border-color: var(--dead);
         }
 
@@ -544,12 +576,12 @@
         }
 
         .status-btn.kill {
-            background: linear-gradient(135deg, #2a1a1a, #1a0a0a);
+            background: linear-gradient(135deg, #2a1a3a, #1a0d2e);
         }
 
         .status-btn.kill:hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+            border-color: var(--accent-light);
+            box-shadow: 0 0 10px var(--purple-glow);
         }
 
         .status-btn.kill.dead {
@@ -558,7 +590,7 @@
         }
 
         .status-btn.remove {
-            background: linear-gradient(135deg, var(--accent), #5a0000);
+            background: linear-gradient(135deg, #8b0000, #5a0000);
         }
 
         .player-role {
@@ -572,7 +604,7 @@
             padding: 10px;
             border: 1px solid var(--gold-dark);
             border-radius: 6px;
-            background: rgba(30, 20, 20, 0.9);
+            background: rgba(30, 15, 50, 0.9);
             color: var(--text);
             font-family: 'Crimson Text', serif;
             font-size: 0.95rem;
@@ -646,7 +678,7 @@
             padding: 10px;
             border: 1px solid var(--gold-dark);
             border-radius: 6px;
-            background: rgba(30, 20, 20, 0.9);
+            background: rgba(30, 15, 50, 0.9);
             color: var(--text);
             font-family: 'Crimson Text', serif;
             font-size: 0.95rem;
@@ -666,7 +698,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px var(--purple-glow);
         }
 
         .section h2 {
@@ -694,7 +726,7 @@
             padding: 12px;
             border: 1px solid var(--gold-dark);
             border-radius: 6px;
-            background: rgba(30, 20, 20, 0.9);
+            background: rgba(30, 15, 50, 0.9);
             color: var(--text);
             font-family: 'Crimson Text', serif;
             font-size: 1rem;
@@ -716,7 +748,7 @@
 
         .current-nomination {
             padding: 16px;
-            background: rgba(139, 0, 0, 0.2);
+            background: rgba(107, 63, 160, 0.2);
             border: 2px solid var(--accent);
             border-radius: 8px;
             margin-bottom: 16px;
@@ -780,8 +812,8 @@
         }
 
         .action-btn.execute {
-            background: linear-gradient(135deg, var(--accent), #5a0000);
-            border-color: var(--accent-light);
+            background: linear-gradient(135deg, #8b0000, #5a0000);
+            border-color: #c41e3a;
             color: white;
         }
 
@@ -798,7 +830,7 @@
 
         .history-item {
             padding: 10px 12px;
-            background: rgba(30, 20, 20, 0.6);
+            background: rgba(30, 15, 50, 0.6);
             border-radius: 6px;
             margin-bottom: 8px;
             font-size: 0.95rem;
@@ -806,7 +838,7 @@
         }
 
         .history-item.execution {
-            border-left-color: var(--accent);
+            border-left-color: #c41e3a;
             background: rgba(139, 0, 0, 0.15);
         }
 
@@ -821,7 +853,7 @@
             width: 100%;
             padding: 16px;
             background: transparent;
-            color: var(--accent);
+            color: var(--accent-light);
             border: 2px solid var(--accent);
             border-radius: 8px;
             font-family: 'Cinzel', serif;
@@ -835,8 +867,8 @@
         }
 
         .reset-btn:hover {
-            background: rgba(139, 0, 0, 0.2);
-            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
+            background: rgba(107, 63, 160, 0.2);
+            box-shadow: 0 0 20px var(--purple-glow);
         }
 
         .add-player {
@@ -872,6 +904,11 @@
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .add-player button:hover {
+            box-shadow: 0 0 20px var(--purple-glow);
         }
 
         .hidden {
@@ -890,6 +927,93 @@
         ::-webkit-scrollbar-thumb {
             background: var(--gold-dark);
             border-radius: 4px;
+        }
+
+        /* Narrator login gate */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(7, 6, 15, 0.98), rgba(14, 11, 31, 0.98)),
+                url('/assets/Background.jpg') center/cover fixed;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-card {
+            background: var(--bg-card);
+            border: 2px solid var(--gold-dark);
+            border-radius: 16px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px var(--purple-glow);
+            text-align: center;
+        }
+        .auth-card h1 {
+            margin-bottom: 4px;
+        }
+        .auth-card .subtitle {
+            margin-bottom: 28px;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: rgba(14, 11, 31, 0.8);
+            color: var(--text);
+            font-family: 'Crimson Text', serif;
+            font-size: 1.05rem;
+        }
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(232, 200, 124, 0.25);
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 6px;
+            background: linear-gradient(135deg, var(--blood), #5a0812);
+            color: var(--text);
+            border: 2px solid var(--blood);
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.05rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .auth-btn:hover {
+            box-shadow: 0 0 24px rgba(139, 14, 30, 0.6);
+            transform: translateY(-1px);
+        }
+        .auth-error {
+            color: #ff6b7a;
+            margin-top: 10px;
+            min-height: 1.2em;
+            font-size: 0.95rem;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--gold-dark);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .logout-btn:hover {
+            color: var(--gold);
+            border-color: var(--gold);
         }
 
         /* Responsive */
@@ -918,16 +1042,29 @@
     </style>
 </head>
 <body>
+    <!-- Narrator login gate -->
+    <div class="auth-overlay" id="auth-overlay">
+        <form class="auth-card" onsubmit="event.preventDefault(); attemptLogin();">
+            <h1>Storyteller</h1>
+            <p class="subtitle">Ravenswood Bluff awaits its narrator</p>
+            <input type="text" class="auth-input" id="auth-user" placeholder="Username" autocomplete="username" autofocus>
+            <input type="password" class="auth-input" id="auth-pass" placeholder="Password" autocomplete="current-password">
+            <button type="submit" class="auth-btn">Enter the Village</button>
+            <div class="auth-error" id="auth-error"></div>
+        </form>
+    </div>
+
     <div class="container">
         <nav class="nav">
             <a href="index.html" class="active">Game Tracker</a>
             <a href="grimoire.html">Grimoire</a>
             <a href="night.html">Night Order</a>
             <a href="guide.html">Storyteller Guide</a>
+            <a href="tv.html" target="_blank">TV Display</a>
+            <button class="logout-btn" onclick="boctLogout()" style="margin-left: auto;">Log Out</button>
         </nav>
 
-        <div class="clock-icon"></div>
-        <h1>Blood on the Clocktower</h1>
+        <h1 class="site-title">Blood on the Clocktower</h1>
         <p class="subtitle">"In the village of Ravenswood Bluff, evil lurks in the shadows..."</p>
 
         <!-- Join Info Bar -->
@@ -937,13 +1074,30 @@
                     <div class="game-code-label">Game Code</div>
                     <div class="game-code" id="game-code-display">----</div>
                 </div>
+                <div class="edition-select">
+                    <div class="game-code-label">Edition</div>
+                    <select id="edition-selector" onchange="setEdition(this.value)" style="
+                        padding: 8px 12px;
+                        border: 2px solid var(--gold-dark);
+                        border-radius: 6px;
+                        background: rgba(14, 11, 31, 0.9);
+                        color: var(--gold);
+                        font-family: 'Cinzel', serif;
+                        font-size: 0.9rem;
+                        cursor: pointer;
+                    ">
+                        <option value="trouble_brewing">Trouble Brewing</option>
+                        <option value="bad_moon_rising">Bad Moon Rising</option>
+                        <option value="sects_and_violets">Sects &amp; Violets</option>
+                    </select>
+                </div>
                 <div class="player-count">
                     <span id="connected-count">0</span> players online
                 </div>
             </div>
             <div class="join-buttons">
                 <button class="show-qr-btn" onclick="showQRModal()">Show QR Code</button>
-                <button class="new-game-btn" onclick="createNewGame()">New Game</button>
+                <button class="new-game-btn" onclick="confirmNewGame()">New Game</button>
             </div>
         </div>
 
@@ -1020,30 +1174,132 @@
     <script>
         const socket = io();
 
-        const ROLES = [
-            "-- Townsfolk --",
-            "Washerwoman", "Librarian", "Investigator", "Chef", "Empath",
-            "Fortune Teller", "Undertaker", "Monk", "Ravenkeeper", "Virgin",
-            "Slayer", "Soldier", "Mayor",
-            "-- Outsiders --",
-            "Butler", "Drunk", "Recluse", "Saint",
-            "-- Minions --",
-            "Poisoner", "Spy", "Scarlet Woman", "Baron",
-            "-- Demons --",
-            "Imp",
-            "-- Other --",
-            "Unknown", "Custom"
-        ];
+        // ===== Narrator auth =====
+        const AUTH_KEY = 'boctNarratorCreds';
 
-        const ROLE_TEAMS = {
-            "Washerwoman": "good", "Librarian": "good", "Investigator": "good",
-            "Chef": "good", "Empath": "good", "Fortune Teller": "good",
-            "Undertaker": "good", "Monk": "good", "Ravenkeeper": "good",
-            "Virgin": "good", "Slayer": "good", "Soldier": "good", "Mayor": "good",
-            "Butler": "good", "Drunk": "good", "Recluse": "good", "Saint": "good",
-            "Poisoner": "evil", "Spy": "evil", "Scarlet Woman": "evil", "Baron": "evil",
-            "Imp": "evil"
+        function attemptLogin() {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value;
+            const errEl = document.getElementById('auth-error');
+            errEl.textContent = '';
+            socket.emit('narrator-login', { user, pass }, (resp) => {
+                if (resp.success) {
+                    localStorage.setItem(AUTH_KEY, JSON.stringify({ user, pass }));
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    bootNarrator();
+                } else {
+                    errEl.textContent = resp.error || 'Login failed';
+                }
+            });
+        }
+
+        function boctLogout() {
+            localStorage.removeItem(AUTH_KEY);
+            location.reload();
+        }
+
+        // Attempt silent login with saved creds; if it fails, show the overlay
+        function tryStoredLogin() {
+            const saved = localStorage.getItem(AUTH_KEY);
+            if (!saved) return false;
+            try {
+                const { user, pass } = JSON.parse(saved);
+                socket.emit('narrator-login', { user, pass }, (resp) => {
+                    if (resp.success) {
+                        document.getElementById('auth-overlay').style.display = 'none';
+                        bootNarrator();
+                    } else {
+                        localStorage.removeItem(AUTH_KEY);
+                    }
+                });
+                return true;
+            } catch (e) {
+                localStorage.removeItem(AUTH_KEY);
+                return false;
+            }
+        }
+
+        // Re-auth automatically after any reconnect (sockets lose auth flag on disconnect)
+        socket.on('connect', () => {
+            const saved = localStorage.getItem(AUTH_KEY);
+            if (saved) {
+                try {
+                    const { user, pass } = JSON.parse(saved);
+                    socket.emit('narrator-login', { user, pass }, () => {});
+                } catch (e) {}
+            }
+        });
+
+        const EDITIONS = {
+            trouble_brewing: {
+                name: "Trouble Brewing",
+                townsfolk: ["Washerwoman", "Librarian", "Investigator", "Chef", "Empath",
+                    "Fortune Teller", "Undertaker", "Monk", "Ravenkeeper", "Virgin",
+                    "Slayer", "Soldier", "Mayor"],
+                outsiders: ["Butler", "Drunk", "Recluse", "Saint"],
+                minions: ["Poisoner", "Spy", "Scarlet Woman", "Baron"],
+                demons: ["Imp"]
+            },
+            bad_moon_rising: {
+                name: "Bad Moon Rising",
+                townsfolk: ["Grandmother", "Sailor", "Chambermaid", "Exorcist", "Innkeeper",
+                    "Gambler", "Gossip", "Courtier", "Professor", "Minstrel",
+                    "Tea Lady", "Pacifist", "Fool"],
+                outsiders: ["Tinker", "Moonchild", "Goon", "Lunatic"],
+                minions: ["Godfather", "Devil's Advocate", "Assassin", "Mastermind"],
+                demons: ["Zombuul", "Pukka", "Shabaloth", "Po"]
+            },
+            sects_and_violets: {
+                name: "Sects & Violets",
+                townsfolk: ["Clockmaker", "Dreamer", "Snake Charmer", "Mathematician", "Flowergirl",
+                    "Town Crier", "Oracle", "Savant", "Seamstress", "Philosopher",
+                    "Artist", "Juggler", "Sage"],
+                outsiders: ["Mutant", "Sweetheart", "Barber", "Klutz"],
+                minions: ["Evil Twin", "Witch", "Cerenovus", "Pit-Hag"],
+                demons: ["Fang Gu", "Vigormortis", "No Dashii", "Vortox"]
+            }
         };
+
+        const TRAVELLERS = ["Scapegoat", "Gunslinger", "Beggar", "Bureaucrat", "Thief",
+            "Butcher", "Bone Collector", "Harlot", "Barista", "Judge", "Matron", "Deviant"];
+
+        let currentEdition = localStorage.getItem('boct_edition') || 'trouble_brewing';
+
+        function getRolesForEdition(editionKey) {
+            const edition = EDITIONS[editionKey];
+            return [
+                "-- Townsfolk --",
+                ...edition.townsfolk,
+                "-- Outsiders --",
+                ...edition.outsiders,
+                "-- Minions --",
+                ...edition.minions,
+                "-- Demons --",
+                ...edition.demons,
+                "-- Travellers --",
+                ...TRAVELLERS,
+                "-- Other --",
+                "Unknown", "Custom"
+            ];
+        }
+
+        function getRoleTeamsForEdition(editionKey) {
+            const edition = EDITIONS[editionKey];
+            const teams = {};
+            edition.townsfolk.forEach(r => teams[r] = "good");
+            edition.outsiders.forEach(r => teams[r] = "good");
+            edition.minions.forEach(r => teams[r] = "evil");
+            edition.demons.forEach(r => teams[r] = "evil");
+            // Travellers: default to good but can be flipped manually via team toggle
+            TRAVELLERS.forEach(r => teams[r] = "good");
+            return teams;
+        }
+
+        function setEdition(editionKey) {
+            currentEdition = editionKey;
+            localStorage.setItem('boct_edition', editionKey);
+            render();
+        }
 
         let gameState = {
             code: null,
@@ -1074,20 +1330,68 @@
                                 }
                             });
                             generateQRCode();
+                            broadcastStateToTv();
                             render();
                         } else {
-                            // Game expired, create new one
-                            gameState.code = null;
-                            createNewGame();
+                            // Local code not valid — check if server has an active game to recover
+                            tryRecoverActiveGame();
                         }
                     });
+                } else {
+                    tryRecoverActiveGame();
                 }
+            } else {
+                tryRecoverActiveGame();
             }
             render();
         }
 
+        // If narrator has no local state but an active game exists on the server
+        // (e.g. accidentally cleared cookies / different browser), offer to rejoin it
+        // instead of silently creating a brand-new game.
+        function tryRecoverActiveGame() {
+            socket.emit('get-active-game', (resp) => {
+                if (resp && resp.success) {
+                    const msg = `An active game (${resp.code}) is already running on the server. Rejoin it?\n\nOK = Rejoin  |  Cancel = Start a fresh game`;
+                    if (confirm(msg)) {
+                        socket.emit('rejoin-game', resp.code, (r2) => {
+                            if (r2.success) {
+                                gameState.code = resp.code;
+                                if (resp.snapshot) {
+                                    gameState = { ...gameState, ...resp.snapshot, code: resp.code };
+                                } else {
+                                    gameState.players = r2.players.map(p => ({
+                                        id: p.id,
+                                        socketId: p.id,
+                                        name: p.name,
+                                        alive: p.alive !== false,
+                                        role: p.role || '',
+                                        team: '',
+                                        notes: '',
+                                        roleSent: !!p.role
+                                    }));
+                                }
+                                generateQRCode();
+                                broadcastStateToTv();
+                                saveState();
+                                render();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
         function saveState() {
             localStorage.setItem('boctStorytellerState', JSON.stringify(gameState));
+            broadcastStateToTv();
+        }
+
+        // Forward the full game state to the server so the TV display can mirror it
+        function broadcastStateToTv() {
+            if (gameState.code) {
+                socket.emit('narrator-state-update', gameState);
+            }
         }
 
         function createNewGame() {
@@ -1104,6 +1408,29 @@
                     render();
                 }
             });
+        }
+
+        // Guarded wrapper for the "New Game" button — confirms before wiping state
+        function confirmNewGame() {
+            if (gameState.code && (gameState.players.length > 0 || gameState.history.length > 0)) {
+                const ok = confirm(
+                    `⚠ This will END the current game (${gameState.code}) and start a new one.\n\n` +
+                    `Current game: ${gameState.players.length} players, ${gameState.history.length} events.\n\n` +
+                    `Are you sure?`
+                );
+                if (!ok) return;
+                socket.emit('end-game');
+            }
+            gameState = {
+                code: null,
+                phase: 'day',
+                dayNum: 1,
+                players: [],
+                history: [],
+                currentNomination: null
+            };
+            localStorage.removeItem('boctStorytellerState');
+            createNewGame();
         }
 
         function generateQRCode() {
@@ -1205,7 +1532,8 @@
             const player = gameState.players.find(p => p.id === id);
             if (player) {
                 player.role = role;
-                player.team = ROLE_TEAMS[role] || '';
+                const roleTeams = getRoleTeamsForEdition(currentEdition);
+                player.team = roleTeams[role] || '';
                 player.roleSent = false;
                 saveState();
                 render();
@@ -1295,22 +1623,16 @@
         }
 
         function resetGame() {
-            if (confirm('End current game and start a new one?')) {
-                socket.emit('end-game');
-                gameState = {
-                    code: null,
-                    phase: 'day',
-                    dayNum: 1,
-                    players: [],
-                    history: [],
-                    currentNomination: null
-                };
-                localStorage.removeItem('boctStorytellerState');
-                createNewGame();
-            }
+            confirmNewGame();
         }
 
         function render() {
+            // Edition selector
+            const editionSelector = document.getElementById('edition-selector');
+            if (editionSelector) {
+                editionSelector.value = currentEdition;
+            }
+
             // Phase
             document.querySelectorAll('.phase-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.classList.contains(gameState.phase));
@@ -1342,7 +1664,7 @@
                     <div class="player-role">
                         <select onchange="setRole('${p.id}', this.value)">
                             <option value="">Select role...</option>
-                            ${ROLES.map(r => r.startsWith('--') ?
+                            ${getRolesForEdition(currentEdition).map(r => r.startsWith('--') ?
                                 `<option disabled>${r}</option>` :
                                 `<option value="${r}" ${p.role === r ? 'selected' : ''}>${r}</option>`
                             ).join('')}
@@ -1452,12 +1774,26 @@
             }
         });
 
-        // Initialize
-        loadState();
-        if (!gameState.code) {
-            createNewGame();
-        } else {
-            generateQRCode();
+        // Only boot the narrator tools after successful auth
+        let booted = false;
+        function bootNarrator() {
+            if (booted) return;
+            booted = true;
+            loadState();
+            if (!gameState.code) {
+                // loadState may have kicked off an async recovery prompt — wait briefly
+                setTimeout(() => {
+                    if (!gameState.code) createNewGame();
+                }, 600);
+            } else {
+                generateQRCode();
+            }
+        }
+
+        // Initialize: try stored login, otherwise show the overlay
+        if (!tryStoredLogin()) {
+            // overlay is already visible by default
+            document.getElementById('auth-user').focus();
         }
     </script>
 </body>
