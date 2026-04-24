@@ -678,7 +678,7 @@ io.on('connection', (socket) => {
         socket.isStoryteller = true;
         activeGameCode = game.code;
         activeGameSnapshot = null;
-        io.to('tv-watchers').emit('active-game-changed', { code: game.code });
+        io.emit('active-game-changed', { code: game.code });
         console.log('Game created:', game.code);
         callback({ success: true, code: game.code });
     });
@@ -714,6 +714,76 @@ io.on('connection', (socket) => {
         } else {
             callback({ success: false, error: 'Game not found' });
         }
+    });
+
+    // Resurrect a game from the narrator's local snapshot. Used when the
+    // server lost state (restart, crash) but the narrator still has the
+    // full game in localStorage — recreates the game with the same code
+    // so QR codes and player localStorage keep working.
+    socket.on('resurrect-game', (data, callback) => {
+        if (!socket.narratorAuthed) {
+            return callback({ success: false, error: 'Not authenticated' });
+        }
+        const code = (data && data.code || '').toUpperCase();
+        if (!code || code.length !== 4) {
+            return callback({ success: false, error: 'Bad code' });
+        }
+        // If the game already exists (e.g. another narrator already
+        // resurrected it), just rejoin instead of overwriting.
+        if (games.has(code)) {
+            const existing = games.get(code);
+            if (!existing.storytellers) existing.storytellers = new Set();
+            existing.storytellers.add(socket.id);
+            socket.join(code);
+            socket.gameCode = code;
+            socket.isStoryteller = true;
+            activeGameCode = code;
+            return callback({
+                success: true,
+                resurrected: false,
+                players: Array.from(existing.players.values())
+            });
+        }
+        const game = {
+            code,
+            storytellers: new Set([socket.id]),
+            players: new Map(),
+            phase: data.phase || 'day',
+            dayNum: data.dayNum || 1,
+            createdAt: Date.now()
+        };
+        (data.players || []).forEach(p => {
+            if (!p || !p.name) return;
+            const fakeId = 'resurrected_' + Math.random().toString(36).slice(2);
+            game.players.set(fakeId, {
+                id: fakeId,
+                name: p.name,
+                role: p.role || null,
+                roleInfo: p.role ? (ROLE_INFO[p.role] || ROLE_INFO['Unknown']) : null,
+                alive: p.alive !== false,
+                disconnected: true, // marked dc'd until they rejoin from their phones
+                joinedAt: Date.now()
+            });
+        });
+        games.set(code, game);
+        socket.join(code);
+        socket.gameCode = code;
+        socket.isStoryteller = true;
+        activeGameCode = code;
+        activeGameSnapshot = {
+            code,
+            phase: game.phase,
+            dayNum: game.dayNum,
+            edition: data.edition || null,
+            players: Array.from(game.players.values())
+        };
+        io.emit('active-game-changed', { code });
+        console.log(`Game resurrected: ${code} (${game.players.size} players)`);
+        callback({
+            success: true,
+            resurrected: true,
+            players: Array.from(game.players.values())
+        });
     });
 
     // Query server for the current active game (used by narrator to recover after accidental reset)
@@ -847,7 +917,7 @@ io.on('connection', (socket) => {
         if (activeGameCode === socket.gameCode) {
             activeGameCode = null;
             activeGameSnapshot = null;
-            io.to('tv-watchers').emit('active-game-changed', { code: null });
+            io.emit('active-game-changed', { code: null });
         }
     });
 
@@ -938,7 +1008,7 @@ setInterval(() => {
             if (activeGameCode === code) {
                 activeGameCode = null;
                 activeGameSnapshot = null;
-                io.to('tv-watchers').emit('active-game-changed', { code: null });
+                io.emit('active-game-changed', { code: null });
             }
             console.log('Cleaned up old game:', code);
         }

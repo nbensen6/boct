@@ -929,6 +929,70 @@
             border-radius: 4px;
         }
 
+        /* Active-game banner — shown when the server's active game differs
+           from this tab's (or when there is/isn't a game at all) */
+        .active-banner {
+            display: none;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(107, 63, 160, 0.35), rgba(20, 14, 36, 0.95));
+            border: 2px solid var(--gold-dark);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px var(--purple-glow);
+        }
+        .active-banner.open { display: flex; }
+        .active-banner.warning {
+            border-color: var(--blood);
+            background: linear-gradient(135deg, rgba(139, 14, 30, 0.3), rgba(20, 14, 36, 0.95));
+            box-shadow: 0 4px 20px rgba(139, 14, 30, 0.35);
+        }
+        .active-banner .ab-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        .active-banner .ab-msg {
+            flex: 1 1 220px;
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
+            line-height: 1.35;
+            color: var(--text);
+        }
+        .active-banner .ab-code {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            letter-spacing: 4px;
+            font-weight: bold;
+        }
+        .ab-btn {
+            padding: 10px 18px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: rgba(14, 11, 31, 0.9);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ab-btn:hover { border-color: var(--gold); background: rgba(232, 200, 124, 0.1); }
+        .ab-btn.primary {
+            background: linear-gradient(135deg, #166534, #14532d);
+            border-color: #22c55e;
+            color: #86efac;
+        }
+        .ab-btn.primary:hover { box-shadow: 0 0 18px rgba(34, 197, 94, 0.45); }
+        .ab-btn.danger {
+            background: linear-gradient(135deg, var(--blood), #5a0812);
+            border-color: var(--blood);
+            color: var(--text);
+        }
+        .ab-btn.danger:hover { box-shadow: 0 0 18px rgba(139, 14, 30, 0.55); }
+
         /* Narrator login gate */
         .auth-overlay {
             position: fixed;
@@ -1066,6 +1130,12 @@
 
         <h1 class="site-title">Blood on the Clocktower</h1>
         <p class="subtitle">"In the village of Ravenswood Bluff, evil lurks in the shadows..."</p>
+
+        <div class="active-banner" id="active-banner">
+            <span class="ab-icon" id="ab-icon">🕰️</span>
+            <span class="ab-msg" id="ab-msg"></span>
+            <div class="ab-actions" id="ab-actions" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
 
         <!-- Join Info Bar -->
         <div class="join-bar">
@@ -1257,6 +1327,11 @@
                             // Re-broadcast so the TV & other narrator tabs
                             // catch up on anything else they missed.
                             broadcastStateToTv();
+                            if (booted) refreshServerState();
+                        } else if (booted) {
+                            // Server lost our game (restart/crash). Show
+                            // the Restore/Start-fresh banner.
+                            refreshServerState();
                         }
                     });
                 });
@@ -1404,16 +1479,13 @@
                             saveState();
                             render();
                         } else {
-                            // Saved code is stale (e.g. server restarted). Clear it and
-                            // either recover the server's current active game or create
-                            // a new one — otherwise the narrator silently sits with a
-                            // ghost code that doesn't exist on the server.
-                            gameState.code = null;
-                            tryRecoverActiveGame(/* autoCreateIfNone */ true);
+                            // Saved code is stale. Don't wipe it locally — the
+                            // banner will offer to Restore it or Start Fresh.
+                            refreshServerState();
                         }
                     });
                 } else {
-                    tryRecoverActiveGame(/* autoCreateIfNone */ true);
+                    refreshServerState();
                 }
             } else {
                 tryRecoverActiveGame();
@@ -1421,45 +1493,130 @@
             render();
         }
 
-        // If narrator has no local state but an active game exists on the server
-        // (e.g. accidentally cleared cookies / different browser), offer to rejoin it
-        // instead of silently creating a brand-new game.
-        // If autoCreateIfNone, automatically spin up a new game when no server-side
-        // game is found — avoids the narrator being stranded with no game.
-        function tryRecoverActiveGame(autoCreateIfNone) {
+        // ===== In-page banner for the active game =====
+        // Replaces the old confirm() dialog with an always-visible panel.
+        // States:
+        //   (a) server has an active game that isn't ours — offer to Join
+        //   (b) server has no active game and we have none — offer Create New
+        //   (c) our local game is gone from server (reboot/crash) — offer
+        //       Resurrect (rebuilds it with our local state) or Start Fresh
+        //   (d) server and local agree — hide the banner
+        function showBanner({ icon, msg, buttons, warning }) {
+            const bar = document.getElementById('active-banner');
+            document.getElementById('ab-icon').textContent = icon || '🕰️';
+            document.getElementById('ab-msg').innerHTML = msg;
+            const actionsEl = document.getElementById('ab-actions');
+            actionsEl.innerHTML = '';
+            (buttons || []).forEach(b => {
+                const btn = document.createElement('button');
+                btn.className = 'ab-btn ' + (b.kind || '');
+                btn.textContent = b.label;
+                btn.onclick = b.onClick;
+                actionsEl.appendChild(btn);
+            });
+            bar.classList.toggle('warning', !!warning);
+            bar.classList.add('open');
+        }
+        function hideBanner() {
+            document.getElementById('active-banner').classList.remove('open');
+        }
+
+        // Rebuild the local-to-server relationship UI on demand.
+        function refreshServerState() {
             socket.emit('get-active-game', (resp) => {
                 if (resp && resp.success) {
-                    const msg = `An active game (${resp.code}) is already running on the server. Rejoin it?\n\nOK = Rejoin  |  Cancel = Start a fresh game`;
-                    if (confirm(msg)) {
-                        socket.emit('rejoin-game', resp.code, (r2) => {
-                            if (r2.success) {
-                                gameState.code = resp.code;
-                                if (resp.snapshot) {
-                                    gameState = { ...gameState, ...resp.snapshot, code: resp.code };
-                                } else {
-                                    gameState.players = r2.players.map(p => ({
-                                        id: p.id,
-                                        socketId: p.id,
-                                        name: p.name,
-                                        alive: p.alive !== false,
-                                        role: p.role || '',
-                                        team: '',
-                                        notes: '',
-                                        roleSent: !!p.role
-                                    }));
-                                }
-                                generateQRCode();
-                                broadcastStateToTv();
-                                saveState();
-                                render();
-                            }
+                    const serverCode = resp.code;
+                    if (gameState.code && gameState.code === serverCode) {
+                        hideBanner(); // We're on the same game as the server — all good
+                    } else if (gameState.code) {
+                        // We think we're in a game, but the server's active game differs.
+                        // Either our game got replaced, or we're lagging behind.
+                        showBanner({
+                            icon: '⚠️', warning: true,
+                            msg: `Another narrator is running game <span class="ab-code">${serverCode}</span> on the server. Your local game (<span class="ab-code">${gameState.code}</span>) may be out of date.`,
+                            buttons: [
+                                { label: `Switch to ${serverCode}`, kind: 'primary', onClick: () => joinServerGame(serverCode) },
+                                { label: 'Keep local', onClick: hideBanner }
+                            ]
                         });
-                    } else if (autoCreateIfNone) {
-                        createNewGame();
+                    } else {
+                        // We have no game locally but the server does — offer to join.
+                        showBanner({
+                            icon: '🕰️',
+                            msg: `Server has an active game: <span class="ab-code">${serverCode}</span>. Join it, or start a new one.`,
+                            buttons: [
+                                { label: `Join ${serverCode}`, kind: 'primary', onClick: () => joinServerGame(serverCode) },
+                                { label: 'Create New Game', onClick: createNewGame }
+                            ]
+                        });
                     }
-                } else if (autoCreateIfNone) {
-                    // No server-side game — start one so the TV & players have something to join
-                    createNewGame();
+                } else {
+                    // No active game on the server.
+                    if (gameState.code && gameState.players.length > 0) {
+                        // We have a local game but the server lost it (probably a restart).
+                        // Offer to resurrect (rebuild using local state) or start fresh.
+                        showBanner({
+                            icon: '⚠️', warning: true,
+                            msg: `Your game <span class="ab-code">${gameState.code}</span> is no longer on the server (likely a restart). Restore it from your local state, or start fresh?`,
+                            buttons: [
+                                { label: 'Restore Game', kind: 'primary', onClick: resurrectLocalGame },
+                                { label: 'Start Fresh', kind: 'danger', onClick: createNewGame }
+                            ]
+                        });
+                    } else {
+                        showBanner({
+                            icon: '✨',
+                            msg: 'No active game. Ready to start?',
+                            buttons: [
+                                { label: 'Create New Game', kind: 'primary', onClick: createNewGame }
+                            ]
+                        });
+                    }
+                }
+            });
+        }
+
+        function joinServerGame(code) {
+            socket.emit('rejoin-game', code, (r2) => {
+                if (!r2 || !r2.success) {
+                    alert(r2 && r2.error ? r2.error : 'Could not join that game.');
+                    refreshServerState();
+                    return;
+                }
+                suppressBroadcast = true;
+                try {
+                    if (r2.snapshot) {
+                        gameState = { ...gameState, ...r2.snapshot, code };
+                        if (r2.snapshot.edition) currentEdition = r2.snapshot.edition;
+                    } else {
+                        gameState.code = code;
+                        gameState.players = [];
+                    }
+                    mergeServerPlayers(r2.players);
+                } finally {
+                    suppressBroadcast = false;
+                }
+                generateQRCode();
+                saveState();
+                render();
+                hideBanner();
+            });
+        }
+
+        function resurrectLocalGame() {
+            if (!gameState.code) { createNewGame(); return; }
+            socket.emit('resurrect-game', {
+                code: gameState.code,
+                players: gameState.players,
+                phase: gameState.phase,
+                dayNum: gameState.dayNum,
+                edition: currentEdition
+            }, (resp) => {
+                if (resp && resp.success) {
+                    broadcastStateToTv();
+                    hideBanner();
+                } else {
+                    alert((resp && resp.error) || 'Could not restore game.');
                 }
             });
         }
@@ -1932,16 +2089,13 @@
         function bootNarrator() {
             if (booted) return;
             booted = true;
-            loadState();
-            if (!gameState.code) {
-                // loadState may have kicked off an async recovery prompt — wait briefly
-                setTimeout(() => {
-                    if (!gameState.code) createNewGame();
-                }, 600);
-            } else {
-                generateQRCode();
-            }
+            loadState();                 // emits rejoin or refreshServerState
+            if (gameState.code) generateQRCode();
         }
+
+        // Subscribe to active-game-changed events so the banner updates
+        // when another narrator tab starts / ends a game.
+        socket.on('active-game-changed', () => { if (booted) refreshServerState(); });
 
         // Initialize: try stored login, otherwise show the overlay
         if (!tryStoredLogin()) {
