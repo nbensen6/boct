@@ -590,7 +590,8 @@ function createGame(storytellerSocket) {
 
     const game = {
         code,
-        storyteller: storytellerSocket.id,
+        // Multiple narrator sockets can control the same game (e.g. PC + tablet)
+        storytellers: new Set([storytellerSocket.id]),
         players: new Map(),
         phase: 'day',
         dayNum: 1,
@@ -599,6 +600,17 @@ function createGame(storytellerSocket) {
 
     games.set(code, game);
     return game;
+}
+
+function isStoryteller(game, socketId) {
+    return game && game.storytellers && game.storytellers.has(socketId);
+}
+
+function emitToStorytellers(game, event, data, exceptSocketId) {
+    if (!game || !game.storytellers) return;
+    for (const sid of game.storytellers) {
+        if (sid !== exceptSocketId) io.to(sid).emit(event, data);
+    }
 }
 
 io.on('connection', (socket) => {
@@ -625,13 +637,30 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Narrator broadcasts a full state snapshot — server mirrors it to the TV
+    // Narrator broadcasts a full state snapshot — server mirrors it to:
+    //   - the TV (`tv-state-update`)
+    //   - all OTHER narrator tabs in the same game (`peer-narrator-state`)
+    //   - all players in the game room, sanitized (`game-roster-update`)
     socket.on('narrator-state-update', (state) => {
         if (!socket.isStoryteller || !socket.narratorAuthed) return;
         if (state && state.code && games.has(state.code)) {
+            const game = games.get(state.code);
             activeGameCode = state.code;
             activeGameSnapshot = state;
             io.to('tv-watchers').emit('tv-state-update', state);
+            emitToStorytellers(game, 'peer-narrator-state', state, socket.id);
+
+            const sanitized = {
+                code: state.code,
+                phase: state.phase,
+                dayNum: state.dayNum,
+                edition: state.edition || null,
+                players: (state.players || []).map(p => ({
+                    name: p.name,
+                    alive: p.alive !== false
+                }))
+            };
+            io.to(state.code).emit('game-roster-update', sanitized);
         }
     });
 
@@ -651,22 +680,34 @@ io.on('connection', (socket) => {
         callback({ success: true, code: game.code });
     });
 
-    // Storyteller rejoins existing game
+    // Storyteller rejoins existing game (additional narrator tabs join here too)
     socket.on('rejoin-game', (code, callback) => {
         if (!socket.narratorAuthed) {
             return callback({ success: false, error: 'Not authenticated' });
         }
+        code = (code || '').toUpperCase();
         const game = games.get(code);
         if (game) {
-            game.storyteller = socket.id;
+            // Migrate pre-existing single-storyteller games on the fly
+            if (!game.storytellers) game.storytellers = new Set();
+            if (game.storyteller) {
+                game.storytellers.add(game.storyteller);
+                delete game.storyteller;
+            }
+            game.storytellers.add(socket.id);
             socket.join(code);
             socket.gameCode = code;
             socket.isStoryteller = true;
             activeGameCode = code;
 
-            // Send current players list
+            // Send current players list + any snapshot this game has on the server
+            // (so a second narrator tab can populate its UI without clobbering state)
             const players = Array.from(game.players.values());
-            callback({ success: true, players });
+            callback({
+                success: true,
+                players,
+                snapshot: activeGameCode === code ? activeGameSnapshot : null
+            });
         } else {
             callback({ success: false, error: 'Game not found' });
         }
@@ -719,8 +760,8 @@ io.on('connection', (socket) => {
         socket.gameCode = code.toUpperCase();
         socket.playerName = name;
 
-        // Notify storyteller
-        io.to(game.storyteller).emit('player-joined', {
+        // Notify all narrator tabs
+        emitToStorytellers(game, 'player-joined', {
             id: socket.id,
             name: player.name,
             players: Array.from(game.players.values())
@@ -733,7 +774,7 @@ io.on('connection', (socket) => {
     // Storyteller assigns role to player
     socket.on('assign-role', ({ playerId, role }) => {
         const game = games.get(socket.gameCode);
-        if (!game || game.storyteller !== socket.id) return;
+        if (!game || !isStoryteller(game, socket.id)) return;
 
         const player = game.players.get(playerId);
         if (player) {
@@ -746,8 +787,8 @@ io.on('connection', (socket) => {
                 roleInfo: player.roleInfo
             });
 
-            // Confirm to storyteller
-            socket.emit('role-assigned-confirm', { playerId, role });
+            // Confirm to all narrator tabs
+            emitToStorytellers(game, 'role-assigned-confirm', { playerId, role });
             console.log(`Role ${role} assigned to player ${player.name}`);
         }
     });
@@ -755,7 +796,7 @@ io.on('connection', (socket) => {
     // Storyteller updates player status (alive/dead)
     socket.on('update-player-status', ({ playerId, alive }) => {
         const game = games.get(socket.gameCode);
-        if (!game || game.storyteller !== socket.id) return;
+        if (!game || !isStoryteller(game, socket.id)) return;
 
         const player = game.players.get(playerId);
         if (player) {
@@ -767,7 +808,7 @@ io.on('connection', (socket) => {
     // Storyteller updates phase
     socket.on('update-phase', ({ phase, dayNum }) => {
         const game = games.get(socket.gameCode);
-        if (!game || game.storyteller !== socket.id) return;
+        if (!game || !isStoryteller(game, socket.id)) return;
 
         game.phase = phase;
         game.dayNum = dayNum;
@@ -779,7 +820,7 @@ io.on('connection', (socket) => {
     // Storyteller sends message to all players
     socket.on('broadcast-message', (message) => {
         const game = games.get(socket.gameCode);
-        if (!game || game.storyteller !== socket.id) return;
+        if (!game || !isStoryteller(game, socket.id)) return;
 
         io.to(socket.gameCode).emit('storyteller-message', message);
     });
@@ -787,7 +828,7 @@ io.on('connection', (socket) => {
     // Storyteller removes player
     socket.on('remove-player', (playerId) => {
         const game = games.get(socket.gameCode);
-        if (!game || game.storyteller !== socket.id) return;
+        if (!game || !isStoryteller(game, socket.id)) return;
 
         game.players.delete(playerId);
         io.to(playerId).emit('removed-from-game');
@@ -796,7 +837,7 @@ io.on('connection', (socket) => {
     // Storyteller ends game
     socket.on('end-game', () => {
         const game = games.get(socket.gameCode);
-        if (!game || game.storyteller !== socket.id) return;
+        if (!game || !isStoryteller(game, socket.id)) return;
 
         io.to(socket.gameCode).emit('game-ended');
         games.delete(socket.gameCode);
@@ -815,15 +856,17 @@ io.on('connection', (socket) => {
             const game = games.get(socket.gameCode);
             if (game) {
                 if (socket.isStoryteller) {
-                    // Storyteller disconnected - keep game alive for reconnect
-                    console.log('Storyteller disconnected from game:', socket.gameCode);
+                    // A narrator tab closed. Keep the game alive; just drop this
+                    // socket from the set so we don't try to emit to a dead conn.
+                    if (game.storytellers) game.storytellers.delete(socket.id);
+                    console.log('Narrator tab disconnected from game:', socket.gameCode);
                 } else {
                     // Player disconnected
                     const player = game.players.get(socket.id);
                     if (player) {
                         // Mark as disconnected but don't remove
                         player.disconnected = true;
-                        io.to(game.storyteller).emit('player-disconnected', {
+                        emitToStorytellers(game, 'player-disconnected', {
                             id: socket.id,
                             name: player.name
                         });
@@ -863,8 +906,8 @@ io.on('connection', (socket) => {
             socket.gameCode = code.toUpperCase();
             socket.playerName = name;
 
-            // Notify storyteller
-            io.to(game.storyteller).emit('player-reconnected', {
+            // Notify all narrator tabs
+            emitToStorytellers(game, 'player-reconnected', {
                 id: socket.id,
                 name: foundPlayer.name
             });

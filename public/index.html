@@ -1094,6 +1094,20 @@
                 <div class="player-count">
                     <span id="connected-count">0</span> players online
                 </div>
+                <div class="join-existing" style="display: flex; gap: 6px; align-items: center;">
+                    <input type="text" id="join-code-input" maxlength="4" placeholder="CODE"
+                           style="width: 80px; padding: 8px 10px; text-transform: uppercase; letter-spacing: 3px;
+                                  border: 2px solid var(--gold-dark); border-radius: 6px;
+                                  background: rgba(14, 11, 31, 0.9); color: var(--gold);
+                                  font-family: 'Cinzel', serif; text-align: center;">
+                    <button onclick="joinExistingGame()"
+                            style="padding: 8px 12px; border: 2px solid var(--gold-dark); border-radius: 6px;
+                                   background: rgba(107, 63, 160, 0.3); color: var(--gold);
+                                   font-family: 'Cinzel', serif; font-size: 0.75rem; cursor: pointer;
+                                   text-transform: uppercase; letter-spacing: 1px;">
+                        Join Game
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1317,6 +1331,17 @@
                 if (gameState.code) {
                     socket.emit('rejoin-game', gameState.code, (response) => {
                         if (response.success) {
+                            // If the server has a newer snapshot than our local copy,
+                            // prefer it — another narrator tab may have edits we lack.
+                            if (response.snapshot) {
+                                suppressBroadcast = true;
+                                try {
+                                    gameState = { ...gameState, ...response.snapshot, code: gameState.code };
+                                    if (response.snapshot.edition) currentEdition = response.snapshot.edition;
+                                } finally {
+                                    suppressBroadcast = false;
+                                }
+                            }
                             // Merge connected players with saved state
                             response.players.forEach(p => {
                                 const existing = gameState.players.find(ep => ep.name === p.name);
@@ -1395,10 +1420,81 @@
         }
 
         // Forward the full game state to the server so the TV display can mirror it
+        // and so players can receive a sanitized roster for their note-taking UI
         function broadcastStateToTv() {
-            if (gameState.code) {
-                socket.emit('narrator-state-update', gameState);
+            if (gameState.code && !suppressBroadcast) {
+                socket.emit('narrator-state-update', {
+                    ...gameState,
+                    edition: currentEdition
+                });
             }
+        }
+
+        // Set true while applying a state update that came FROM a peer narrator
+        // tab — prevents immediately re-broadcasting the same state.
+        let suppressBroadcast = false;
+
+        // Another narrator tab (same game) made a change — mirror it locally.
+        socket.on('peer-narrator-state', (state) => {
+            if (!state || state.code !== gameState.code) return;
+            suppressBroadcast = true;
+            try {
+                gameState = { ...gameState, ...state };
+                if (state.edition) {
+                    currentEdition = state.edition;
+                    localStorage.setItem('boct_edition', currentEdition);
+                }
+                localStorage.setItem('boctStorytellerState', JSON.stringify(gameState));
+                generateQRCode();
+                render();
+            } finally {
+                suppressBroadcast = false;
+            }
+        });
+
+        // Narrator joins an existing game by its code (e.g. tablet joining PC's game)
+        function joinExistingGame() {
+            const input = document.getElementById('join-code-input');
+            const code = (input.value || '').trim().toUpperCase();
+            if (!code || code.length !== 4) {
+                alert('Enter the 4-character game code.');
+                return;
+            }
+            socket.emit('rejoin-game', code, (resp) => {
+                if (!resp.success) {
+                    alert(resp.error || 'Could not join that game.');
+                    return;
+                }
+                suppressBroadcast = true;
+                try {
+                    if (resp.snapshot) {
+                        gameState = { ...gameState, ...resp.snapshot, code };
+                        if (resp.snapshot.edition) {
+                            currentEdition = resp.snapshot.edition;
+                            localStorage.setItem('boct_edition', currentEdition);
+                        }
+                    } else {
+                        // No snapshot yet — fall back to just the connected players
+                        gameState.code = code;
+                        gameState.players = (resp.players || []).map(p => ({
+                            id: p.id,
+                            socketId: p.id,
+                            name: p.name,
+                            alive: p.alive !== false,
+                            role: p.role || '',
+                            team: '',
+                            notes: '',
+                            roleSent: !!p.role
+                        }));
+                    }
+                    localStorage.setItem('boctStorytellerState', JSON.stringify(gameState));
+                    generateQRCode();
+                    render();
+                } finally {
+                    suppressBroadcast = false;
+                }
+                input.value = '';
+            });
         }
 
         function createNewGame() {

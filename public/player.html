@@ -388,6 +388,210 @@
             display: none !important;
         }
 
+        /* ===== Player notes ===== */
+        .notes-toggle {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: rgba(107, 63, 160, 0.2);
+            color: var(--gold);
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+        .notes-toggle:hover { border-color: var(--gold); }
+
+        .notes-panel {
+            display: none;
+            margin-top: 14px;
+            padding: 16px;
+            background: rgba(14, 11, 31, 0.85);
+            border: 1px solid var(--gold-dark);
+            border-radius: 10px;
+            text-align: left;
+        }
+        .notes-panel.open { display: block; }
+
+        .notes-panel h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(232, 200, 124, 0.25);
+        }
+        .notes-panel h3:not(:first-child) { margin-top: 18px; }
+
+        .notes-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        /* Selected source (role or name) */
+        .chip-selected {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        /* Role tray */
+        .role-tray {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        .role-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .role-chip .chip-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            line-height: 1;
+            background: rgba(20, 14, 36, 0.9);
+        }
+        .role-chip .chip-label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.58rem;
+            text-align: center;
+            margin-top: 3px;
+            line-height: 1.1;
+            letter-spacing: 0.3px;
+            color: var(--text);
+            max-width: 70px;
+        }
+        .role-chip.townsfolk .chip-circle { border-color: var(--good); }
+        .role-chip.outsider .chip-circle  { border-color: #9ca3af; }
+        .role-chip.minion .chip-circle    { border-color: var(--evil); }
+        .role-chip.demon .chip-circle     {
+            border-color: #7f1d1d;
+            background: linear-gradient(135deg, #1a0505, #2d0a0a);
+        }
+
+        /* Name tray */
+        .name-tray {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .name-chip {
+            padding: 6px 12px;
+            border: 1px solid var(--gold-dark);
+            border-radius: 999px;
+            background: rgba(20, 14, 36, 0.85);
+            color: var(--text);
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .name-chip.dead {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        /* Who's Who grid */
+        .whoswho-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .ww-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: rgba(20, 14, 36, 0.7);
+            border: 1px solid var(--gold-dark);
+            border-radius: 8px;
+        }
+        .ww-row .ww-name {
+            flex: 1;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .ww-row.dead .ww-name {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .ww-slot {
+            min-width: 100px;
+            max-width: 140px;
+            min-height: 36px;
+            border: 2px dashed var(--gold-dark);
+            border-radius: 8px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: rgba(14, 11, 31, 0.6);
+            cursor: pointer;
+            text-align: center;
+        }
+        .ww-slot.filled {
+            border-style: solid;
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(107, 63, 160, 0.25);
+        }
+        .ww-slot.drop-hover {
+            border-color: var(--gold);
+            background: rgba(232, 200, 124, 0.2);
+        }
+        .ww-slot .slot-emoji {
+            margin-right: 4px;
+            font-size: 0.95rem;
+        }
+
+        /* Freeform notes */
+        #freeform-notes {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 8px;
+            background: rgba(14, 11, 31, 0.8);
+            color: var(--text);
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        #freeform-notes:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        #freeform-notes.drop-hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(232, 200, 124, 0.4);
+        }
+
         /* Connection status */
         .connection-status {
             position: fixed;
@@ -474,6 +678,25 @@
             </div>
 
             <div class="storyteller-message hidden" id="storyteller-message"></div>
+
+            <button class="notes-toggle" id="notes-toggle" onclick="toggleNotes()">Open My Notes</button>
+            <div class="notes-panel" id="notes-panel">
+                <h3>Who's Who</h3>
+                <div class="notes-hint">Tap (or drag) a role below, then tap a player's slot to record your guess.</div>
+                <div class="whoswho-grid" id="whoswho-grid"></div>
+
+                <h3>Roles in this Edition</h3>
+                <div class="notes-hint">Drag onto a player, or into your notes below.</div>
+                <div class="role-tray" id="role-tray"></div>
+
+                <h3>Players</h3>
+                <div class="notes-hint">Drag a name into your notes.</div>
+                <div class="name-tray" id="name-tray"></div>
+
+                <h3>My Notes</h3>
+                <div class="notes-hint">Drop a role or name here to insert it.</div>
+                <textarea id="freeform-notes" placeholder="Jot down claims, suspicions, hunches..."></textarea>
+            </div>
         </div>
     </div>
 
@@ -482,6 +705,250 @@
         const socket = io();
         let playerData = null;
         let gameCode = null;
+
+        // ========== EDITIONS + role metadata (client-side only, never trusts server for this) ==========
+        const EDITIONS = {
+            trouble_brewing: {
+                name: "Trouble Brewing",
+                townsfolk: ["Washerwoman","Librarian","Investigator","Chef","Empath","Fortune Teller","Undertaker","Monk","Ravenkeeper","Virgin","Slayer","Soldier","Mayor"],
+                outsiders: ["Butler","Drunk","Recluse","Saint"],
+                minions: ["Poisoner","Spy","Scarlet Woman","Baron"],
+                demons: ["Imp"]
+            },
+            bad_moon_rising: {
+                name: "Bad Moon Rising",
+                townsfolk: ["Grandmother","Sailor","Chambermaid","Exorcist","Innkeeper","Gambler","Gossip","Courtier","Professor","Minstrel","Tea Lady","Pacifist","Fool"],
+                outsiders: ["Tinker","Moonchild","Goon","Lunatic"],
+                minions: ["Godfather","Devil's Advocate","Assassin","Mastermind"],
+                demons: ["Zombuul","Pukka","Shabaloth","Po"]
+            },
+            sects_and_violets: {
+                name: "Sects & Violets",
+                townsfolk: ["Clockmaker","Dreamer","Snake Charmer","Mathematician","Flowergirl","Town Crier","Oracle","Savant","Seamstress","Philosopher","Artist","Juggler","Sage"],
+                outsiders: ["Mutant","Sweetheart","Barber","Klutz"],
+                minions: ["Evil Twin","Witch","Cerenovus","Pit-Hag"],
+                demons: ["Fang Gu","Vigormortis","No Dashii","Vortox"]
+            }
+        };
+        const ROLE_EMOJI = {
+            "Washerwoman":"🧺","Librarian":"📚","Investigator":"🔍","Chef":"👨‍🍳","Empath":"💗","Fortune Teller":"🔮","Undertaker":"⚰️","Monk":"🛡️","Ravenkeeper":"🦅","Virgin":"⚜️","Slayer":"🏹","Soldier":"⚔️","Mayor":"👑","Butler":"🎩","Drunk":"🍺","Recluse":"🕸️","Saint":"✨","Poisoner":"🧪","Spy":"👁️","Scarlet Woman":"💋","Baron":"⚖️","Imp":"😈",
+            "Grandmother":"👵","Sailor":"⚓","Chambermaid":"🛏️","Exorcist":"🕯️","Innkeeper":"🏨","Gambler":"🎲","Gossip":"💬","Courtier":"🥂","Professor":"🎓","Minstrel":"🎵","Tea Lady":"🫖","Pacifist":"🕊️","Fool":"🃏","Tinker":"🔧","Moonchild":"🌙","Goon":"🧔","Lunatic":"🌕","Godfather":"🤵","Devil's Advocate":"😇","Assassin":"🗡️","Mastermind":"🧠","Zombuul":"🧟","Pukka":"☠️","Shabaloth":"👹","Po":"👺",
+            "Clockmaker":"🕰️","Dreamer":"💭","Snake Charmer":"🐍","Mathematician":"🔢","Flowergirl":"🌸","Town Crier":"📣","Oracle":"🏛️","Savant":"🎩","Seamstress":"🧵","Philosopher":"📖","Artist":"🎨","Juggler":"🤹","Sage":"🧙","Mutant":"🧬","Sweetheart":"💞","Barber":"✂️","Klutz":"🤦","Evil Twin":"👯","Witch":"🧙‍♀️","Cerenovus":"👻","Pit-Hag":"🎃","Fang Gu":"🧛","Vigormortis":"💀","No Dashii":"👽","Vortox":"🌀"
+        };
+        function roleEmoji(role) { return ROLE_EMOJI[role] || '❓'; }
+        function roleCategoryInEdition(role, editionKey) {
+            const ed = EDITIONS[editionKey];
+            if (!ed) return null;
+            if (ed.townsfolk.includes(role)) return 'townsfolk';
+            if (ed.outsiders.includes(role)) return 'outsiders';
+            if (ed.minions.includes(role)) return 'minions';
+            if (ed.demons.includes(role)) return 'demons';
+            return null;
+        }
+        const CATEGORY_CLASS = { townsfolk: 'townsfolk', outsiders: 'outsider', minions: 'minion', demons: 'demon' };
+
+        // ========== Notes state ==========
+        let currentEdition = null; // "trouble_brewing" etc
+        let roster = [];           // [{name, alive}]
+        let myNotes = {
+            guesses: {},   // playerName -> role
+            freeform: ''
+        };
+        let notesOpen = false;
+        let selectedRole = null;   // role name currently selected via tap
+
+        function notesKey() {
+            return `boctPlayerNotes__${gameCode || 'nogame'}__${playerData ? playerData.name : 'anon'}`;
+        }
+        function loadMyNotes() {
+            try {
+                const saved = localStorage.getItem(notesKey());
+                if (saved) myNotes = { guesses: {}, freeform: '', ...JSON.parse(saved) };
+            } catch (e) {}
+        }
+        function saveMyNotes() {
+            try { localStorage.setItem(notesKey(), JSON.stringify(myNotes)); } catch (e) {}
+        }
+        function escapeHtml(s) {
+            if (s == null) return '';
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+        }
+
+        function toggleNotes() {
+            notesOpen = !notesOpen;
+            document.getElementById('notes-panel').classList.toggle('open', notesOpen);
+            document.getElementById('notes-toggle').textContent = notesOpen ? 'Close My Notes' : 'Open My Notes';
+            if (notesOpen) renderNotes();
+        }
+
+        function renderNotes() {
+            renderRoleTray();
+            renderNameTray();
+            renderWhoswho();
+            document.getElementById('freeform-notes').value = myNotes.freeform || '';
+        }
+
+        function renderRoleTray() {
+            const tray = document.getElementById('role-tray');
+            const ed = currentEdition && EDITIONS[currentEdition];
+            if (!ed) {
+                tray.innerHTML = '<div class="notes-hint" style="grid-column: 1/-1;">Waiting for the Storyteller to pick an edition…</div>';
+                return;
+            }
+            const categories = [['townsfolk', ed.townsfolk], ['outsiders', ed.outsiders], ['minions', ed.minions], ['demons', ed.demons]];
+            tray.innerHTML = categories.map(([cat, roles]) =>
+                roles.map(r => `
+                    <div class="role-chip ${CATEGORY_CLASS[cat]} ${selectedRole === r ? 'chip-selected' : ''}"
+                         draggable="true"
+                         data-role="${escapeHtml(r)}"
+                         title="${escapeHtml(r)}">
+                        <div class="chip-circle">${roleEmoji(r)}</div>
+                        <div class="chip-label">${escapeHtml(r)}</div>
+                    </div>
+                `).join('')
+            ).join('');
+            tray.querySelectorAll('.role-chip').forEach(el => {
+                const role = el.dataset.role;
+                el.addEventListener('click', () => {
+                    selectedRole = selectedRole === role ? null : role;
+                    renderRoleTray();
+                });
+                el.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/x-boct-role', role);
+                    e.dataTransfer.setData('text/plain', role);
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+            });
+        }
+
+        function renderNameTray() {
+            const tray = document.getElementById('name-tray');
+            const others = roster.filter(p => !playerData || p.name !== playerData.name);
+            if (others.length === 0) {
+                tray.innerHTML = '<div class="notes-hint">No other players yet.</div>';
+                return;
+            }
+            tray.innerHTML = others.map(p => `
+                <div class="name-chip ${p.alive ? '' : 'dead'}"
+                     draggable="true"
+                     data-name="${escapeHtml(p.name)}">
+                    ${escapeHtml(p.name)}
+                </div>
+            `).join('');
+            tray.querySelectorAll('.name-chip').forEach(el => {
+                const name = el.dataset.name;
+                el.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/x-boct-name', name);
+                    e.dataTransfer.setData('text/plain', name);
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+                // Tap to insert into notes
+                el.addEventListener('click', () => insertIntoNotes(name));
+            });
+        }
+
+        function renderWhoswho() {
+            const grid = document.getElementById('whoswho-grid');
+            const others = roster.filter(p => !playerData || p.name !== playerData.name);
+            if (others.length === 0) {
+                grid.innerHTML = '<div class="notes-hint">No other players yet.</div>';
+                return;
+            }
+            grid.innerHTML = others.map(p => {
+                const guess = myNotes.guesses[p.name];
+                const slotHtml = guess
+                    ? `<div class="ww-slot filled" data-name="${escapeHtml(p.name)}" title="Tap to clear"><span class="slot-emoji">${roleEmoji(guess)}</span>${escapeHtml(guess)}</div>`
+                    : `<div class="ww-slot" data-name="${escapeHtml(p.name)}">drop role</div>`;
+                return `
+                    <div class="ww-row ${p.alive ? '' : 'dead'}">
+                        <span class="ww-name">${escapeHtml(p.name)}</span>
+                        ${slotHtml}
+                    </div>
+                `;
+            }).join('');
+            grid.querySelectorAll('.ww-slot').forEach(el => {
+                const name = el.dataset.name;
+                el.addEventListener('click', () => {
+                    if (myNotes.guesses[name] && !selectedRole) {
+                        // Clear existing guess
+                        delete myNotes.guesses[name];
+                        saveMyNotes();
+                        renderWhoswho();
+                    } else if (selectedRole) {
+                        myNotes.guesses[name] = selectedRole;
+                        selectedRole = null;
+                        saveMyNotes();
+                        renderWhoswho();
+                        renderRoleTray();
+                    }
+                });
+                el.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    el.classList.add('drop-hover');
+                });
+                el.addEventListener('dragleave', () => el.classList.remove('drop-hover'));
+                el.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    el.classList.remove('drop-hover');
+                    const role = e.dataTransfer.getData('text/x-boct-role');
+                    if (role) {
+                        myNotes.guesses[name] = role;
+                        saveMyNotes();
+                        renderWhoswho();
+                    }
+                });
+            });
+        }
+
+        function insertIntoNotes(text) {
+            const ta = document.getElementById('freeform-notes');
+            const start = ta.selectionStart ?? ta.value.length;
+            const end = ta.selectionEnd ?? ta.value.length;
+            const before = ta.value.substring(0, start);
+            const after = ta.value.substring(end);
+            const needsSpace = before.length > 0 && !/\s$/.test(before);
+            const ins = (needsSpace ? ' ' : '') + text + ' ';
+            ta.value = before + ins + after;
+            const newCursor = start + ins.length;
+            ta.selectionStart = ta.selectionEnd = newCursor;
+            ta.focus();
+            myNotes.freeform = ta.value;
+            saveMyNotes();
+        }
+
+        // Wire up freeform notes: save on input, accept drops
+        function wireNotesTextarea() {
+            const ta = document.getElementById('freeform-notes');
+            ta.addEventListener('input', () => {
+                myNotes.freeform = ta.value;
+                saveMyNotes();
+            });
+            ta.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                ta.classList.add('drop-hover');
+            });
+            ta.addEventListener('dragleave', () => ta.classList.remove('drop-hover'));
+            ta.addEventListener('drop', (e) => {
+                e.preventDefault();
+                ta.classList.remove('drop-hover');
+                const role = e.dataTransfer.getData('text/x-boct-role');
+                const name = e.dataTransfer.getData('text/x-boct-name');
+                const text = role || name || e.dataTransfer.getData('text/plain');
+                if (text) insertIntoNotes(text);
+            });
+        }
+
+        // Receive sanitized state broadcasts from the server
+        socket.on('game-roster-update', (state) => {
+            if (!state) return;
+            currentEdition = state.edition || currentEdition;
+            roster = state.players || [];
+            if (notesOpen) renderNotes();
+        });
+
+        // Wire the notes textarea once the DOM element exists
+        wireNotesTextarea();
+
 
         // Check URL for game code
         const urlParams = new URLSearchParams(window.location.search);
@@ -499,6 +966,7 @@
                 if (response.success) {
                     playerData = response.player;
                     gameCode = saved.code;
+                    loadMyNotes();
                     if (response.role) {
                         showRoleScreen(response.role, response.roleInfo);
                     } else {
@@ -569,6 +1037,7 @@
                     playerData = response.player;
                     gameCode = code;
                     localStorage.setItem('boctPlayerGame', JSON.stringify({ code, name }));
+                    loadMyNotes();
                     showWaitingScreen(name);
                 } else {
                     showError(response ? response.error : 'Failed to join. Please try again.');
@@ -635,6 +1104,8 @@
         });
 
         socket.on('game-ended', () => {
+            // Keep notes in localStorage (user may want to review after the fact)
+            // but clear the player/game association
             localStorage.removeItem('boctPlayerGame');
             alert('The game has ended. Thanks for playing!');
             location.reload();
