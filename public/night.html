@@ -14,17 +14,18 @@
         }
 
         :root {
-            --bg-dark: #0d0d0d;
-            --bg-card: rgba(20, 15, 15, 0.95);
-            --accent: #8b0000;
-            --accent-light: #c41e3a;
+            --bg-dark: #1a0d2e;
+            --bg-card: rgba(30, 15, 50, 0.95);
+            --accent: #6b3fa0;
+            --accent-light: #9b59b6;
             --gold: #d4af37;
             --gold-dark: #996515;
             --text: #e8e4d9;
-            --text-muted: #888;
+            --text-muted: #a89ec2;
             --good: #4a9eff;
             --evil: #c41e3a;
             --night-blue: #1e3a5f;
+            --purple-glow: rgba(107, 63, 160, 0.5);
         }
 
         body {
@@ -44,9 +45,13 @@
             right: 0;
             bottom: 0;
             background:
+                linear-gradient(to bottom, rgba(26, 13, 46, 0.5) 0%, rgba(26, 13, 46, 0.8) 100%),
                 radial-gradient(ellipse 200px 200px at 20% 10%, rgba(30, 58, 95, 0.4) 0%, transparent 70%),
                 radial-gradient(ellipse 150px 150px at 80% 20%, rgba(30, 58, 95, 0.3) 0%, transparent 70%),
-                linear-gradient(to bottom, #0a1525 0%, #0d0d0d 50%, #0a0505 100%);
+                url('/assets/Background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             z-index: -1;
         }
 
@@ -62,10 +67,11 @@
             gap: 12px;
             margin-bottom: 20px;
             padding: 12px;
-            background: linear-gradient(135deg, rgba(30, 58, 95, 0.3), rgba(20, 15, 15, 0.9));
+            background: linear-gradient(135deg, rgba(107, 63, 160, 0.3), rgba(30, 15, 50, 0.9));
             border: 1px solid var(--gold-dark);
             border-radius: 8px;
             flex-wrap: wrap;
+            box-shadow: 0 4px 20px var(--purple-glow);
         }
 
         .nav a {
@@ -300,6 +306,7 @@
             <select class="night-btn" id="editionSelect" onchange="changeEdition()" style="min-width: 150px;">
                 <option value="trouble_brewing">Trouble Brewing</option>
                 <option value="bad_moon_rising">Bad Moon Rising</option>
+                <option value="sects_and_violets">Sects &amp; Violets</option>
             </select>
             <button class="night-btn" onclick="changeNight(-1)">&larr;</button>
             <div class="night-display">Night <span id="nightNum">1</span></div>
@@ -381,6 +388,46 @@
                 ],
                 minions: ["Godfather", "Devil's Advocate", "Assassin", "Mastermind"],
                 demons: ["Zombuul", "Pukka", "Shabaloth", "Po"]
+            },
+            sects_and_violets: {
+                name: "Sects & Violets",
+                firstNight: [
+                    { role: "Philosopher", team: "good", instruction: "The Philosopher may choose a good character. They gain that ability. If that character is in play, that player is now drunk.", action: "They may choose a good character (once per game)" },
+                    { role: "Snake Charmer", team: "good", instruction: "The Snake Charmer points to a player. If they chose the Demon, swap characters and alignments — the (now Demon) Snake Charmer is poisoned.", action: "They choose a player; resolve swap if Demon" },
+                    { role: "Evil Twin", team: "evil", instruction: "Wake the Evil Twin and their good twin together. Show each who the other is.", action: "Show twins to each other" },
+                    { role: "Witch", team: "evil", instruction: "The Witch points to a player. If that player nominates tomorrow, they die.", action: "They choose who to curse" },
+                    { role: "Cerenovus", team: "evil", instruction: "The Cerenovus points to a player and a good character. That player is mad about being that character tomorrow, or you may execute them.", action: "They pick player + character; tell target privately" },
+                    { role: "Fang Gu", team: "evil", instruction: "The Fang Gu points to a player to kill. (No effect first night.)", action: "They choose who to kill (no kill night 1)" },
+                    { role: "Clockmaker", team: "good", instruction: "Show the Clockmaker fingers for the number of steps clockwise from the Demon to the nearest Minion.", action: "Show number with fingers" },
+                    { role: "Dreamer", team: "good", instruction: "The Dreamer points to a player. Show them 1 good and 1 evil character — one is correct.", action: "They choose; show 2 character tokens" },
+                    { role: "Seamstress", team: "good", instruction: "The Seamstress may point to 2 players. Nod 'yes' if they are the same alignment, shake 'no' otherwise.", action: "They may choose 2 players (once per game)" },
+                    { role: "Mathematician", team: "good", instruction: "Show fingers for the number of players whose ability worked abnormally tonight (poisoned/drunk/etc.).", action: "Show number with fingers" },
+                    { role: "Town Crier", team: "good", instruction: "Town Crier acts on other nights — skip on night 1.", action: "(Skip first night)" },
+                    { role: "Oracle", team: "good", instruction: "Oracle acts on other nights — skip on night 1.", action: "(Skip first night)" },
+                ],
+                otherNights: [
+                    { role: "Philosopher", team: "good", instruction: "If the Philosopher hasn't used their ability, they may choose a good character. They gain that ability.", action: "They may choose (once per game)" },
+                    { role: "Snake Charmer", team: "good", instruction: "The Snake Charmer points to a player. If they chose the Demon, swap characters & alignments; the (now Demon) Snake Charmer is poisoned.", action: "They choose a player" },
+                    { role: "Sage", team: "good", instruction: "If the Sage was killed by the Demon tonight, point to 2 players — one is the Demon.", action: "Show 2 players (one is Demon)" },
+                    { role: "Witch", team: "evil", instruction: "The Witch points to a player. If that player nominates tomorrow, they die. (Skipped if 3 or fewer alive.)", action: "They choose who to curse" },
+                    { role: "Cerenovus", team: "evil", instruction: "The Cerenovus points to a player and a good character. That player is mad about being that character tomorrow.", action: "They pick player + character; tell target" },
+                    { role: "Pit-Hag", team: "evil", instruction: "The Pit-Hag points to a player and a character. That player becomes that character (if not in play). Creating a new Demon makes night kills arbitrary.", action: "They choose player + character" },
+                    { role: "Fang Gu", team: "evil", instruction: "The Fang Gu points to a player to kill. If the target is an Outsider, they become an evil Fang Gu and the original dies (once per game).", action: "They choose who to kill" },
+                    { role: "No Dashii", team: "evil", instruction: "The No Dashii points to a player to kill. (Their two Townsfolk neighbors are always poisoned.)", action: "They choose who to kill" },
+                    { role: "Vortox", team: "evil", instruction: "The Vortox points to a player to kill. (All Townsfolk info is false this game.)", action: "They choose who to kill" },
+                    { role: "Vigormortis", team: "evil", instruction: "The Vigormortis points to a player to kill. If the target is a Minion, they keep their ability and poison a Townsfolk neighbor.", action: "They choose who to kill" },
+                    { role: "Clockmaker", team: "good", instruction: "Clockmaker only fires on the first night.", action: "(Skip after night 1)" },
+                    { role: "Dreamer", team: "good", instruction: "The Dreamer points to a player. Show them 1 good and 1 evil character — one is correct.", action: "They choose; show 2 character tokens" },
+                    { role: "Flowergirl", team: "good", instruction: "Tell the Flowergirl whether the Demon voted today.", action: "Nod / shake" },
+                    { role: "Town Crier", team: "good", instruction: "Tell the Town Crier whether any Minion nominated today.", action: "Nod / shake" },
+                    { role: "Oracle", team: "good", instruction: "Show the Oracle fingers for the number of dead players who are evil.", action: "Show number with fingers" },
+                    { role: "Seamstress", team: "good", instruction: "If the Seamstress hasn't used their ability, they may point to 2 players. Nod 'yes' if same alignment, shake 'no' otherwise.", action: "They may choose 2 players (once per game)" },
+                    { role: "Juggler", team: "good", instruction: "On the night after the Juggler made their day-1 guesses, show fingers for how many they got right.", action: "Show number on night 2 only" },
+                    { role: "Mathematician", team: "good", instruction: "Show fingers for the number of players whose ability worked abnormally tonight.", action: "Show number with fingers" },
+                    { role: "Sweetheart", team: "good", instruction: "If the Sweetheart died today, choose a player to be drunk for the rest of the game.", action: "Pick a player to drunk" },
+                ],
+                minions: ["Evil Twin", "Witch", "Cerenovus", "Pit-Hag"],
+                demons: ["Fang Gu", "Vigormortis", "No Dashii", "Vortox"]
             }
         };
 
