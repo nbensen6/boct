@@ -20,3 +20,10 @@ primary_region = 'ewr'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+
+# Game state lives in-memory on a single machine. Running 2+ machines
+# splits websocket connections between them and breaks game state.
+# If we ever want HA, add a shared store (Redis/Postgres) first.
+[deploy]
+  max_unavailable = 1
+  strategy = "immediate"
